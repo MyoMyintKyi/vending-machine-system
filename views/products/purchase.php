@@ -11,10 +11,17 @@
             <li>Quantity available: <?= htmlspecialchars((string) ($product['quantity_available'] ?? 0), ENT_QUOTES, 'UTF-8') ?></li>
         </ul>
 
-        <p>The full purchase workflow is scheduled for Phase 9. This route exists now so the controller and route contract are in place.</p>
+        <?php if (!empty($errors['quantity'])): ?>
+            <div class="error"><?= htmlspecialchars((string) $errors['quantity'], ENT_QUOTES, 'UTF-8') ?></div>
+        <?php endif; ?>
 
         <form method="post" action="/products/<?= (int) ($product['id'] ?? 0) ?>/purchase">
-            <button type="submit">Continue</button>
+            <label for="quantity">Quantity</label>
+            <input id="quantity" name="quantity" type="number" min="1" step="1" max="<?= htmlspecialchars((string) ($product['quantity_available'] ?? 0), ENT_QUOTES, 'UTF-8') ?>" required value="<?= htmlspecialchars((string) (($old['quantity'] ?? '1')), ENT_QUOTES, 'UTF-8') ?>">
+
+            <button type="submit">Purchase</button>
         </form>
+
+        <p><a href="/products/<?= (int) ($product['id'] ?? 0) ?>">Back to product</a></p>
     </section>
 </main>

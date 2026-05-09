@@ -67,6 +67,14 @@ final class ProductRepository
         return $statement->fetchAll();
     }
 
+    public function countAll(): int
+    {
+        $statement = $this->database->query('SELECT COUNT(*) AS total FROM products');
+        $result = $statement->fetch();
+
+        return (int) ($result['total'] ?? 0);
+    }
+
     public function update(int $id, array $data): bool
     {
         return $this->database->query(

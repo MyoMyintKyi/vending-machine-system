@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Interfaces\ProductServiceInterface;
 use App\Repositories\ProductRepository;
 
-final class ProductService
+final class ProductService implements ProductServiceInterface
 {
     public function __construct(
         private readonly ProductRepository $productRepository
@@ -16,6 +17,11 @@ final class ProductService
     public function findAll(int $page = 1, int $perPage = 10, string $sortBy = 'name', string $direction = 'asc'): array
     {
         return $this->productRepository->findAll($page, $perPage, $sortBy, $direction);
+    }
+
+    public function countAll(): int
+    {
+        return $this->productRepository->countAll();
     }
 
     public function findById(int $id): ?array

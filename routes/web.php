@@ -30,5 +30,5 @@ $router->get('/products/{id}', [ProductsController::class, 'show'], [AuthMiddlew
 $router->get('/products/{id}/edit', [ProductsController::class, 'edit'], [AuthMiddleware::class, [RoleMiddleware::class, 'Admin']]);
 $router->post('/products/{id}/update', [ProductsController::class, 'update'], [AuthMiddleware::class, [RoleMiddleware::class, 'Admin']]);
 $router->post('/products/{id}/delete', [ProductsController::class, 'destroy'], [AuthMiddleware::class, [RoleMiddleware::class, 'Admin']]);
-$router->get('/products/{id}/purchase', [ProductsController::class, 'purchaseForm'], [AuthMiddleware::class, [RoleMiddleware::class, 'Admin']]);
-$router->post('/products/{id}/purchase', [ProductsController::class, 'purchase'], [AuthMiddleware::class, [RoleMiddleware::class, 'Admin']]);
+$router->get('/products/{id}/purchase', [ProductsController::class, 'purchaseForm'], [AuthMiddleware::class, [RoleMiddleware::class, 'User']]);
+$router->post('/products/{id}/purchase', [ProductsController::class, 'purchase'], [AuthMiddleware::class, [RoleMiddleware::class, 'User']]);

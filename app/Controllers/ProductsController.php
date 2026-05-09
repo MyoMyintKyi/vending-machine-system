@@ -4,34 +4,50 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Interfaces\ProductServiceInterface;
+use App\Interfaces\PurchaseServiceInterface;
 use App\Repositories\ProductRepository;
+use App\Repositories\TransactionRepository;
 use App\Services\ProductService;
+use App\Services\PurchaseService;
 use Core\Database;
 use Core\Request;
 use Core\Response;
+use DomainException;
 use Throwable;
 
 final class ProductsController
 {
     public function __construct(
-        private readonly ?ProductService $productService = null
+        private readonly ?ProductServiceInterface $productService = null,
+        private readonly ?PurchaseServiceInterface $purchaseService = null
     ) {
     }
 
     public function index(Request $request, Response $response): void
     {
         $page = max(1, (int) $request->query('page', 1));
+        $perPage = 10;
         $sort = (string) $request->query('sort', 'name');
         $direction = strtolower((string) $request->query('direction', 'asc'));
         $direction = $direction === 'desc' ? 'desc' : 'asc';
+        $totalProducts = $this->service()->countAll();
+        $totalPages = max(1, (int) ceil($totalProducts / $perPage));
+        $page = min($page, $totalPages);
+        $products = $this->service()->findAll($page, $perPage, $sort, $direction);
 
         $response->view('products/index', [
             'title' => 'Products',
             'flash' => (string) $request->pullSessionValue('flash', ''),
-            'products' => $this->service()->findAll($page, 10, $sort, $direction),
+            'products' => $products,
             'sort' => $sort,
             'direction' => $direction,
             'role' => (string) $request->session('role', ''),
+            'page' => $page,
+            'perPage' => $perPage,
+            'totalPages' => $totalPages,
+            'hasPreviousPage' => $page > 1,
+            'hasNextPage' => $page < $totalPages,
         ]);
     }
 
@@ -48,6 +64,7 @@ final class ProductsController
             'title' => 'Product Details',
             'product' => $product,
             'role' => (string) $request->session('role', ''),
+            'flash' => (string) $request->pullSessionValue('flash', ''),
         ]);
     }
 
@@ -166,6 +183,8 @@ final class ProductsController
             'title' => 'Purchase Product',
             'product' => $product,
             'flash' => (string) $request->pullSessionValue('flash', ''),
+            'errors' => (array) $request->pullSessionValue('errors', []),
+            'old' => (array) $request->pullSessionValue('old', ['quantity' => '1']),
         ]);
     }
 
@@ -179,13 +198,42 @@ final class ProductsController
             return;
         }
 
-        $request->setSessionValue('flash', 'Purchase workflow will be completed in Phase 9.');
+        $quantity = trim((string) $request->input('quantity', ''));
+        $errors = $this->validatePurchaseData($quantity, (int) $product['quantity_available']);
+
+        if ($errors !== []) {
+            $this->redirectWithFormState($request, $response, '/products/' . $productId . '/purchase', $errors, [
+                'quantity' => $quantity,
+            ]);
+            return;
+        }
+
+        try {
+            $purchase = $this->purchaseService()->purchase(
+                (int) $request->session('user_id', 0),
+                $productId,
+                (int) $quantity
+            );
+        } catch (DomainException $exception) {
+            $this->redirectWithFormState($request, $response, '/products/' . $productId . '/purchase', [
+                'quantity' => $exception->getMessage(),
+            ], [
+                'quantity' => $quantity,
+            ]);
+            return;
+        }
+
+        $request->setSessionValue('flash', sprintf(
+            'Purchase completed successfully. Quantity: %d. Total: %s.',
+            $purchase['quantity'],
+            $purchase['total_amount']
+        ));
         $response->redirect('/products/' . $productId . '/purchase');
     }
 
-    private function service(): ProductService
+    private function service(): ProductServiceInterface
     {
-        if ($this->productService instanceof ProductService) {
+        if ($this->productService instanceof ProductServiceInterface) {
             return $this->productService;
         }
 
@@ -193,6 +241,19 @@ final class ProductsController
         $repository = new ProductRepository($database);
 
         return new ProductService($repository);
+    }
+
+    private function purchaseService(): PurchaseServiceInterface
+    {
+        if ($this->purchaseService instanceof PurchaseServiceInterface) {
+            return $this->purchaseService;
+        }
+
+        $database = new Database(require config_path('database.php'));
+        $productRepository = new ProductRepository($database);
+        $transactionRepository = new TransactionRepository($database);
+
+        return new PurchaseService($database, $productRepository, $transactionRepository);
     }
 
     private function productPayload(Request $request): array
@@ -222,6 +283,21 @@ final class ProductsController
             $errors['quantity_available'] = 'Quantity available is required.';
         } elseif (filter_var($data['quantity_available'], FILTER_VALIDATE_INT) === false || (int) $data['quantity_available'] < 0) {
             $errors['quantity_available'] = 'Quantity available must be a non-negative integer.';
+        }
+
+        return $errors;
+    }
+
+    private function validatePurchaseData(string $quantity, int $availableQuantity): array
+    {
+        $errors = [];
+
+        if ($quantity === '') {
+            $errors['quantity'] = 'Quantity is required.';
+        } elseif (filter_var($quantity, FILTER_VALIDATE_INT) === false || (int) $quantity < 1) {
+            $errors['quantity'] = 'Quantity must be an integer greater than or equal to 1.';
+        } elseif ((int) $quantity > $availableQuantity) {
+            $errors['quantity'] = 'Requested quantity exceeds available stock.';
         }
 
         return $errors;
