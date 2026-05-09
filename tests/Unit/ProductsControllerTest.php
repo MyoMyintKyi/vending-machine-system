@@ -521,7 +521,7 @@ final class ProductsControllerTest extends TestCase
         $controller->purchase($request, $response);
 
         $this->assertSame('/products/1/purchase', $response->redirectLocation());
-        $this->assertSame('Purchase completed successfully. Quantity: 2. Total: 7.980. Available quantity is now 8.', $session['flash']);
+        $this->assertSame('Purchase completed successfully. Quantity: 2. Total: 7.980 USD. Available quantity is now 8.', $session['flash']);
     }
 
     private function makeRequest(array &$session, string $method, string $uri, array $query = [], array $post = [], array $routeParams = []): Request

@@ -6,6 +6,7 @@ namespace App\Controllers\Api;
 
 use App\Interfaces\TransactionServiceInterface;
 use App\Repositories\TransactionRepository;
+use App\Support\CurrencyFormatter;
 use App\Services\TransactionService;
 use Core\Database;
 use Core\Request;
@@ -30,7 +31,7 @@ final class TransactionApiController
         $response->json([
             'success' => true,
             'data' => [
-                'items' => (array) ($overview['transactions'] ?? []),
+                'items' => array_map($this->formatTransaction(...), (array) ($overview['transactions'] ?? [])),
                 'pagination' => [
                     'page' => $page,
                     'per_page' => $perPage,
@@ -41,6 +42,19 @@ final class TransactionApiController
             ],
             'message' => 'Transactions retrieved successfully.',
         ]);
+    }
+
+    private function formatTransaction(array $transaction): array
+    {
+        if (array_key_exists('unit_price', $transaction)) {
+            $transaction['unit_price'] = CurrencyFormatter::formatUsd((string) $transaction['unit_price']);
+        }
+
+        if (array_key_exists('total_amount', $transaction)) {
+            $transaction['total_amount'] = CurrencyFormatter::formatUsd((string) $transaction['total_amount']);
+        }
+
+        return $transaction;
     }
 
     private function filters(Request $request): array

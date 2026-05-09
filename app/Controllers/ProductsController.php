@@ -10,6 +10,7 @@ use App\Repositories\ProductRepository;
 use App\Repositories\TransactionRepository;
 use App\Services\ProductService;
 use App\Services\PurchaseService;
+use App\Support\CurrencyFormatter;
 use Core\Database;
 use Core\Request;
 use Core\Response;
@@ -232,7 +233,7 @@ final class ProductsController
         $request->setSessionValue('flash', sprintf(
             'Purchase completed successfully. Quantity: %d. Total: %s. Available quantity is now %d.',
             $purchase['quantity'],
-            $purchase['total_amount'],
+            CurrencyFormatter::formatUsd((string) $purchase['total_amount']),
             $purchase['quantity_available']
         ));
         $response->redirect('/products/' . $productId . '/purchase');

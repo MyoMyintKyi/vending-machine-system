@@ -1,3 +1,8 @@
+<?php
+use App\Support\ViewNumberFormatter;
+use App\Support\CurrencyFormatter;
+?>
+
 <section class="page-header page-header-split">
     <div class="page-header-copy">
         <h1>Purchase</h1>
@@ -25,11 +30,11 @@
             </div>
             <div class="data-point">
                 <strong>Price</strong>
-                <span><?= htmlspecialchars((string) ($product['price'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
+                <span><?= htmlspecialchars(CurrencyFormatter::formatUsd((string) ($product['price'] ?? '')), ENT_QUOTES, 'UTF-8') ?></span>
             </div>
             <div class="data-point">
                 <strong>Quantity available</strong>
-                <span><?= htmlspecialchars((string) ($product['quantity_available'] ?? 0), ENT_QUOTES, 'UTF-8') ?></span>
+                <span><?= htmlspecialchars(ViewNumberFormatter::format((string) ($product['quantity_available'] ?? 0)), ENT_QUOTES, 'UTF-8') ?></span>
             </div>
         </div>
     </article>

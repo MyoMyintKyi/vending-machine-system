@@ -18,13 +18,13 @@
         </div>
 
         <div>
-            <p class="section-heading">Workspace</p>
+            <!-- <p class="section-heading">Workspace</p> -->
             <nav class="auth-nav">
                 <a href="/dashboard">Dashboard</a>
                 <?php if (($_SESSION['role'] ?? '') === 'Admin'): ?>
+                    <a href="/users">Users</a>
                     <a href="/transactions">Transactions</a>
-                    <a href="/products">Manage Products</a>
-                    <a href="/admin">Admin</a>
+                    <a href="/products">Products</a>
                 <?php endif; ?>
             </nav>
         </div>
@@ -34,7 +34,7 @@
         <header class="topbar">
             <div>
                 <p class="topbar-title">Operation Dashboard</p>
-                <p class="topbar-subtitle">Manage products, purchases, and transactions.</p>
+                <p class="topbar-subtitle">Manage users, products, purchases, and transactions.</p>
             </div>
             <div class="topbar-actions">
                 <span class="user-badge">Signed in as <?= htmlspecialchars((string) ($_SESSION['username'] ?? ''), ENT_QUOTES, 'UTF-8') ?> (<?= htmlspecialchars((string) ($_SESSION['role'] ?? ''), ENT_QUOTES, 'UTF-8') ?>)</span>

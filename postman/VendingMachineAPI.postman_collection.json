@@ -8,23 +8,15 @@
   "variable": [
     {
       "key": "base_url",
-      "value": "{{base_url}}"
+      "value": "http://localhost:8000"
     },
     {
       "key": "jwt_token",
-      "value": "{{jwt_token}}"
+      "value": ""
     },
     {
       "key": "admin_jwt_token",
-      "value": "{{admin_jwt_token}}"
-    },
-    {
-      "key": "product_id",
-      "value": "{{product_id}}"
-    },
-    {
-      "key": "target_user_id",
-      "value": "{{target_user_id}}"
+      "value": ""
     }
   ],
   "item": [
@@ -53,6 +45,40 @@
       ]
     },
     {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Get Dashboard",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "dashboard"
+              ]
+            },
+            "description": "Returns the authenticated user's dashboard summary fields: username, email, and role."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Auth",
       "item": [
         {
@@ -65,8 +91,7 @@
                 "exec": [
                   "const response = pm.response.json();",
                   "if (response?.data?.token) {",
-                  "  pm.environment.set('admin_jwt_token', response.data.token);",
-                  "  pm.environment.set('target_user_id', String(response.data.user.id));",
+                  "  pm.collectionVariables.set('admin_jwt_token', response.data.token);",
                   "}"
                 ]
               }
@@ -82,7 +107,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"identifier\": \"{{admin_identifier}}\",\n  \"password\": \"{{admin_password}}\"\n}"
+              "raw": "{\n  \"identifier\": \"admin@example.com\",\n  \"password\": \"password123\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/auth/login",
@@ -109,8 +134,7 @@
                 "exec": [
                   "const response = pm.response.json();",
                   "if (response?.data?.token) {",
-                  "  pm.environment.set('jwt_token', response.data.token);",
-                  "  pm.environment.set('target_user_id', String(response.data.user.id));",
+                  "  pm.collectionVariables.set('jwt_token', response.data.token);",
                   "}"
                 ]
               }
@@ -126,7 +150,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"{{username}}\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+              "raw": "{\n  \"username\": \"postman-user\",\n  \"email\": \"postman-user@example.com\",\n  \"password\": \"password123\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/auth/register",
@@ -153,8 +177,7 @@
                 "exec": [
                   "const response = pm.response.json();",
                   "if (response?.data?.token) {",
-                  "  pm.environment.set('jwt_token', response.data.token);",
-                  "  pm.environment.set('target_user_id', String(response.data.user.id));",
+                  "  pm.collectionVariables.set('jwt_token', response.data.token);",
                   "}"
                 ]
               }
@@ -170,7 +193,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"identifier\": \"{{identifier}}\",\n  \"password\": \"{{password}}\"\n}"
+              "raw": "{\n  \"identifier\": \"postman-user@example.com\",\n  \"password\": \"password123\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/auth/login",
@@ -190,15 +213,89 @@
       ]
     },
     {
+      "name": "Users",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/users?page=1&per_page=10&username=&email=&role=&sort=created_at&direction=desc",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "10"
+                },
+                {
+                  "key": "username",
+                  "value": ""
+                },
+                {
+                  "key": "email",
+                  "value": ""
+                },
+                {
+                  "key": "role",
+                  "value": ""
+                },
+                {
+                  "key": "sort",
+                  "value": "created_at"
+                },
+                {
+                  "key": "direction",
+                  "value": "desc"
+                }
+              ]
+            },
+            "description": "Lists admin-visible users with pagination, filtering, and sorting. Allowed sort fields: username, email, role, created_at."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Products",
       "item": [
         {
           "name": "List Products",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/products?page={{page}}&per_page={{per_page}}&sort={{sort}}&direction={{direction}}",
+              "raw": "{{base_url}}/api/products?page=1&per_page=10&sort=name&direction=asc",
               "host": [
                 "{{base_url}}"
               ],
@@ -209,19 +306,19 @@
               "query": [
                 {
                   "key": "page",
-                  "value": "{{page}}"
+                  "value": "1"
                 },
                 {
                   "key": "per_page",
-                  "value": "{{per_page}}"
+                  "value": "10"
                 },
                 {
                   "key": "sort",
-                  "value": "{{sort}}"
+                  "value": "name"
                 },
                 {
                   "key": "direction",
-                  "value": "{{direction}}"
+                  "value": "asc"
                 }
               ]
             }
@@ -231,17 +328,27 @@
         {
           "name": "Show Product",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/products/{{product_id}}",
+              "raw": "{{base_url}}/api/products/1",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "api",
                 "products",
-                "{{product_id}}"
+                "1"
               ]
             }
           },
@@ -249,20 +356,6 @@
         },
         {
           "name": "Create Product",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "const response = pm.response.json();",
-                  "if (response?.data?.id) {",
-                  "  pm.environment.set('product_id', String(response.data.id));",
-                  "}"
-                ]
-              }
-            }
-          ],
           "request": {
             "auth": {
               "type": "bearer",
@@ -283,7 +376,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"{{product_name}}\",\n  \"price\": \"{{product_price}}\",\n  \"quantity_available\": \"{{quantity_available}}\"\n}"
+              "raw": "{\n  \"name\": \"Postman Cola\",\n  \"price\": \"2.500\",\n  \"quantity_available\": \"25\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/products",
@@ -320,17 +413,17 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"{{product_name}}\",\n  \"price\": \"{{product_price}}\",\n  \"quantity_available\": \"{{quantity_available}}\"\n}"
+              "raw": "{\n  \"name\": \"Postman Cola\",\n  \"price\": \"2.500\",\n  \"quantity_available\": \"25\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/products/{{product_id}}",
+              "raw": "{{base_url}}/api/products/1",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "api",
                 "products",
-                "{{product_id}}"
+                "1"
               ]
             }
           },
@@ -352,14 +445,14 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/products/{{product_id}}",
+              "raw": "{{base_url}}/api/products/1",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "api",
                 "products",
-                "{{product_id}}"
+                "1"
               ]
             }
           },
@@ -373,7 +466,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{jwt_token}}",
+                  "value": "{{admin_jwt_token}}",
                   "type": "string"
                 }
               ]
@@ -387,17 +480,17 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"quantity\": \"{{purchase_quantity}}\"\n}"
+              "raw": "{\n  \"quantity\": \"1\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/products/{{product_id}}/purchase",
+              "raw": "{{base_url}}/api/products/1/purchase",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "api",
                 "products",
-                "{{product_id}}",
+                "1",
                 "purchase"
               ]
             }
@@ -425,45 +518,38 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/transactions",
+              "raw": "{{base_url}}/api/transactions?page=1&per_page=10&transaction_type=&username=&product_name=",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "api",
                 "transactions"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "List User Transactions",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
+              ],
+              "query": [
                 {
-                  "key": "token",
-                  "value": "{{jwt_token}}",
-                  "type": "string"
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "10"
+                },
+                {
+                  "key": "transaction_type",
+                  "value": ""
+                },
+                {
+                  "key": "username",
+                  "value": ""
+                },
+                {
+                  "key": "product_name",
+                  "value": ""
                 }
               ]
             },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/users/{{target_user_id}}/transactions",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "{{target_user_id}}",
-                "transactions"
-              ]
-            }
+            "description": "Lists admin-visible transactions with pagination and optional filters for transaction_type, username, and product_name."
           },
           "response": []
         }

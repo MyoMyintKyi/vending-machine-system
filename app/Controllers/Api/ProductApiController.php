@@ -6,6 +6,7 @@ namespace App\Controllers\Api;
 
 use App\Repositories\ProductRepository;
 use App\Repositories\TransactionRepository;
+use App\Support\CurrencyFormatter;
 use App\Services\ProductService;
 use App\Services\PurchaseService;
 use Core\Database;
@@ -28,7 +29,7 @@ final class ProductApiController
         $response->json([
             'success' => true,
             'data' => [
-                'items' => $service->findAll($page, $perPage, $sort, $direction),
+                'items' => array_map($this->formatProduct(...), $service->findAll($page, $perPage, $sort, $direction)),
                 'pagination' => [
                     'page' => $page,
                     'per_page' => $perPage,
@@ -55,7 +56,7 @@ final class ProductApiController
 
         $response->json([
             'success' => true,
-            'data' => $product,
+            'data' => $this->formatProduct($product),
             'message' => 'Product retrieved successfully.',
         ]);
     }
@@ -83,7 +84,7 @@ final class ProductApiController
 
         $response->json([
             'success' => true,
-            'data' => $product,
+            'data' => $this->formatProduct($product ?? []),
             'message' => 'Product created successfully.',
         ], 201);
     }
@@ -109,7 +110,7 @@ final class ProductApiController
         try {
             $this->productService()->update($productId, $payload);
             $product = $this->productService()->findById($productId);
-        } catch (Throwable) {
+        } catch (Throwable $throwable) {
             $response->json([
                 'success' => false,
                 'message' => 'Product could not be updated.',
@@ -119,7 +120,7 @@ final class ProductApiController
 
         $response->json([
             'success' => true,
-            'data' => $product,
+            'data' => $this->formatProduct($product ?? []),
             'message' => 'Product updated successfully.',
         ]);
     }
@@ -188,9 +189,31 @@ final class ProductApiController
 
         $response->json([
             'success' => true,
-            'data' => $purchase,
+            'data' => $this->formatPurchase($purchase),
             'message' => 'Purchase completed successfully.',
         ], 201);
+    }
+
+    private function formatProduct(array $product): array
+    {
+        if (array_key_exists('price', $product)) {
+            $product['price'] = CurrencyFormatter::formatUsd((string) $product['price']);
+        }
+
+        return $product;
+    }
+
+    private function formatPurchase(array $purchase): array
+    {
+        if (array_key_exists('unit_price', $purchase)) {
+            $purchase['unit_price'] = CurrencyFormatter::formatUsd((string) $purchase['unit_price']);
+        }
+
+        if (array_key_exists('total_amount', $purchase)) {
+            $purchase['total_amount'] = CurrencyFormatter::formatUsd((string) $purchase['total_amount']);
+        }
+
+        return $purchase;
     }
 
     private function productService(): ProductService

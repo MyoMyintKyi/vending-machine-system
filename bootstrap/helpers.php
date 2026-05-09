@@ -26,3 +26,10 @@ if (!function_exists('env')) {
         return $value === false || $value === null ? $default : (string) $value;
     }
 }
+
+if (!function_exists('format_view_number')) {
+    function format_view_number(int|float|string|null $value): string
+    {
+        return \App\Support\ViewNumberFormatter::format($value);
+    }
+}

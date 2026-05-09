@@ -77,19 +77,19 @@ if ($totalPageCount <= 10) {
 <section class="metric-grid">
     <article class="metric-card">
         <p class="metric-label">Total Transactions</p>
-        <p class="metric-value"><?= htmlspecialchars((string) ($metrics['total_transactions'] ?? 0), ENT_QUOTES, 'UTF-8') ?></p>
+        <p class="metric-value"><?= htmlspecialchars(\App\Support\ViewNumberFormatter::format((string) ($metrics['total_transactions'] ?? 0)), ENT_QUOTES, 'UTF-8') ?></p>
     </article>
     <article class="metric-card">
         <p class="metric-label">Units Purchased</p>
-        <p class="metric-value"><?= htmlspecialchars((string) ($metrics['total_quantity'] ?? 0), ENT_QUOTES, 'UTF-8') ?></p>
+        <p class="metric-value"><?= htmlspecialchars(\App\Support\ViewNumberFormatter::format((string) ($metrics['total_quantity'] ?? 0)), ENT_QUOTES, 'UTF-8') ?></p>
     </article>
     <article class="metric-card">
         <p class="metric-label">Total Revenue</p>
-        <p class="metric-value"><?= htmlspecialchars((string) ($metrics['total_revenue'] ?? '0.000'), ENT_QUOTES, 'UTF-8') ?></p>
+        <p class="metric-value"><?= htmlspecialchars(\App\Support\CurrencyFormatter::formatUsd((string) ($metrics['total_revenue'] ?? '0.000')), ENT_QUOTES, 'UTF-8') ?></p>
     </article>
     <article class="metric-card">
         <p class="metric-label">Unique Buyers</p>
-        <p class="metric-value"><?= htmlspecialchars((string) ($metrics['unique_users'] ?? 0), ENT_QUOTES, 'UTF-8') ?></p>
+        <p class="metric-value"><?= htmlspecialchars(\App\Support\ViewNumberFormatter::format((string) ($metrics['unique_users'] ?? 0)), ENT_QUOTES, 'UTF-8') ?></p>
     </article>
 </section>
 
@@ -143,9 +143,9 @@ if ($totalPageCount <= 10) {
                         <td><?= htmlspecialchars((string) ($transaction['created_at'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                         <td><?= htmlspecialchars((string) ($transaction['username'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                         <td><?= htmlspecialchars((string) ($transaction['product_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
-                        <td><?= htmlspecialchars((string) ($transaction['quantity'] ?? 0), ENT_QUOTES, 'UTF-8') ?></td>
-                        <td><?= htmlspecialchars((string) ($transaction['unit_price'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
-                        <td><?= htmlspecialchars((string) ($transaction['total_amount'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
+                        <td><?= htmlspecialchars(\App\Support\ViewNumberFormatter::format((string) ($transaction['quantity'] ?? 0)), ENT_QUOTES, 'UTF-8') ?></td>
+                        <td><?= htmlspecialchars(\App\Support\CurrencyFormatter::formatUsd((string) ($transaction['unit_price'] ?? '')), ENT_QUOTES, 'UTF-8') ?></td>
+                        <td><?= htmlspecialchars(\App\Support\CurrencyFormatter::formatUsd((string) ($transaction['total_amount'] ?? '')), ENT_QUOTES, 'UTF-8') ?></td>
                         <td><span class="status-pill"><?= htmlspecialchars((string) ($transaction['transaction_type'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span></td>
                     </tr>
                 <?php endforeach; ?>
@@ -155,7 +155,7 @@ if ($totalPageCount <= 10) {
 
         <?php if ($totalPageCount > 1): ?>
             <div class="pagination">
-                <span class="pagination-summary">Showing <?= $startingRowNumber ?> - <?= $endingRowNumber ?> | Page <?= $currentPage ?> of <?= $totalPageCount ?></span>
+                <span class="pagination-summary">Showing <?= htmlspecialchars(\App\Support\ViewNumberFormatter::format($startingRowNumber), ENT_QUOTES, 'UTF-8') ?> - <?= htmlspecialchars(\App\Support\ViewNumberFormatter::format($endingRowNumber), ENT_QUOTES, 'UTF-8') ?> | Page <?= htmlspecialchars(\App\Support\ViewNumberFormatter::format($currentPage), ENT_QUOTES, 'UTF-8') ?> of <?= htmlspecialchars(\App\Support\ViewNumberFormatter::format($totalPageCount), ENT_QUOTES, 'UTF-8') ?></span>
                 <nav class="pagination-nav" aria-label="Transactions pagination">
                     <?php if (!empty($hasPreviousPage)): ?>
                         <a class="pagination-link" href="/transactions?<?= htmlspecialchars(http_build_query(array_merge($queryBase, ['page' => $currentPage - 1])), ENT_QUOTES, 'UTF-8') ?>">Previous</a>

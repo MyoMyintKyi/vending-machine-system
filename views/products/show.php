@@ -25,15 +25,15 @@
             </div>
             <div class="data-point">
                 <strong>Price</strong>
-                <span><?= htmlspecialchars((string) ($product['price'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
+                <span><?= htmlspecialchars(\App\Support\CurrencyFormatter::formatUsd((string) ($product['price'] ?? '')), ENT_QUOTES, 'UTF-8') ?></span>
             </div>
             <div class="data-point">
                 <strong>Price</strong>
-                <span><?= htmlspecialchars((string) ($product['price'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
+                <span><?= htmlspecialchars(\App\Support\CurrencyFormatter::formatUsd((string) ($product['price'] ?? '')), ENT_QUOTES, 'UTF-8') ?></span>
             </div>
             <div class="data-point">
                 <strong>Quantity Available</strong>
-                <span><?= htmlspecialchars((string) ($product['quantity_available'] ?? 0), ENT_QUOTES, 'UTF-8') ?></span>
+                <span><?= htmlspecialchars(\App\Support\ViewNumberFormatter::format((string) ($product['quantity_available'] ?? 0)), ENT_QUOTES, 'UTF-8') ?></span>
             </div>
             <div class="data-point">
                 <strong>Created At</strong>

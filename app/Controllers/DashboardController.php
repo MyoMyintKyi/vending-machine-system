@@ -19,13 +19,4 @@ final class DashboardController
             'role' => (string) $request->session('role', ''),
         ]);
     }
-
-    public function admin(Request $request, Response $response): void
-    {
-        $response->view('auth/admin', [
-            'title' => 'Admin Area',
-            'username' => (string) $request->session('username', ''),
-            'role' => (string) $request->session('role', ''),
-        ]);
-    }
 }

@@ -1,4 +1,7 @@
 <?php
+use App\Support\ViewNumberFormatter;
+use App\Support\CurrencyFormatter;
+
 $currentPage = max(1, (int) ($page ?? 1));
 $totalPageCount = max(1, (int) ($totalPages ?? 1));
 $itemsPerPage = max(1, (int) ($perPage ?? 10));
@@ -116,10 +119,10 @@ if ($totalPageCount <= 10) {
                         <td>
                             <strong><?= htmlspecialchars((string) $product['name'], ENT_QUOTES, 'UTF-8') ?></strong>
                         </td>
-                        <td><?= htmlspecialchars((string) $product['price'], ENT_QUOTES, 'UTF-8') ?></td>
+                        <td><?= htmlspecialchars(CurrencyFormatter::formatUsd((string) $product['price']), ENT_QUOTES, 'UTF-8') ?></td>
                         <td>
                             <span class="status-pill<?= (int) $product['quantity_available'] === 0 ? ' is-warning' : '' ?>">
-                                <?= htmlspecialchars((string) $product['quantity_available'], ENT_QUOTES, 'UTF-8') ?> in stock
+                                <?= htmlspecialchars(ViewNumberFormatter::format((string) $product['quantity_available']), ENT_QUOTES, 'UTF-8') ?> in stock
                             </span>
                         </td>
                         <td class="action-column-cell">
@@ -146,7 +149,7 @@ if ($totalPageCount <= 10) {
 
         <?php if ($totalPageCount > 1): ?>
             <div class="pagination">
-                <span class="pagination-summary">Showing <?= $startingRowNumber ?> - <?= $endingRowNumber ?> | Page <?= $currentPage ?> of <?= $totalPageCount ?></span>
+                <span class="pagination-summary">Showing <?= htmlspecialchars(ViewNumberFormatter::format($startingRowNumber), ENT_QUOTES, 'UTF-8') ?> - <?= htmlspecialchars(ViewNumberFormatter::format($endingRowNumber), ENT_QUOTES, 'UTF-8') ?> | Page <?= htmlspecialchars(ViewNumberFormatter::format($currentPage), ENT_QUOTES, 'UTF-8') ?> of <?= htmlspecialchars(ViewNumberFormatter::format($totalPageCount), ENT_QUOTES, 'UTF-8') ?></span>
                 <nav class="pagination-nav" aria-label="Products pagination">
                     <?php if (!empty($hasPreviousPage)): ?>
                         <a class="pagination-link" href="/products?page=<?= $currentPage - 1 ?>&sort=<?= urlencode($sortField) ?>&direction=<?= urlencode($sortOrder) ?>">Previous</a>
