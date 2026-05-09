@@ -10,7 +10,6 @@ use App\Interfaces\AuthServiceInterface;
 use Core\Database;
 use Core\Request;
 use Core\Response;
-use DomainException;
 
 final class AuthController
 {
@@ -62,75 +61,6 @@ final class AuthController
 
         $request->setSessionValue('flash', 'Login successful.');
         $response->redirect('/dashboard');
-    }
-
-    public function registerForm(Request $request, Response $response): void
-    {
-        if ((bool) $request->session('authenticated', false) === true) {
-            $response->redirect('/dashboard');
-            return;
-        }
-
-        $response->view('auth/register', $this->consumeFormState($request));
-    }
-
-    public function register(Request $request, Response $response): void
-    {
-        $username = trim((string) $request->input('username', ''));
-        $email = trim((string) $request->input('email', ''));
-        $password = (string) $request->input('password', '');
-        $passwordConfirmation = (string) $request->input('password_confirmation', '');
-
-        $errors = [];
-
-        if ($username === '') {
-            $errors['username'] = 'Username is required.';
-        }
-
-        if ($email === '') {
-            $errors['email'] = 'Email is required.';
-        } elseif (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
-            $errors['email'] = 'A valid email address is required.';
-        }
-
-        if ($password === '') {
-            $errors['password'] = 'Password is required.';
-        } elseif (strlen($password) < 8) {
-            $errors['password'] = 'Password must be at least 8 characters.';
-        }
-
-        if ($passwordConfirmation === '') {
-            $errors['password_confirmation'] = 'Password confirmation is required.';
-        } elseif ($password !== $passwordConfirmation) {
-            $errors['password_confirmation'] = 'Password confirmation must match.';
-        }
-
-        if ($errors !== []) {
-            $this->redirectWithFormState($request, $response, '/register', $errors, [
-                'username' => $username,
-                'email' => $email,
-            ]);
-            return;
-        }
-
-        try {
-            $this->service()->register([
-                'username' => $username,
-                'email' => $email,
-                'password' => $password,
-            ]);
-        } catch (DomainException $exception) {
-            $this->redirectWithFormState($request, $response, '/register', [
-                'form' => $exception->getMessage(),
-            ], [
-                'username' => $username,
-                'email' => $email,
-            ]);
-            return;
-        }
-
-        $request->setSessionValue('flash', 'Registration successful. Please log in.');
-        $response->redirect('/login');
     }
 
     public function logout(Request $request, Response $response): void

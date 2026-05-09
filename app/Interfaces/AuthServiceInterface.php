@@ -10,8 +10,6 @@ interface AuthServiceInterface
 {
     public function attempt(string $identifier, string $password, Request $request): bool;
 
-    public function register(array $data): array;
-
     public function logout(Request $request): void;
 
     public function user(Request $request): ?array;

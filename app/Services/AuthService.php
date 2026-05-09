@@ -6,7 +6,6 @@ namespace App\Services;
 
 use App\Repositories\UserRepository;
 use Core\Request;
-use DomainException;
 
 final class AuthService implements \App\Interfaces\AuthServiceInterface
 {
@@ -26,32 +25,6 @@ final class AuthService implements \App\Interfaces\AuthServiceInterface
         $this->storeAuthenticatedUser($request, $user);
 
         return true;
-    }
-
-    public function register(array $data): array
-    {
-        if ($this->userRepository->findByUsername($data['username']) !== null) {
-            throw new DomainException('That username is already in use.');
-        }
-
-        if ($this->userRepository->findByEmail($data['email']) !== null) {
-            throw new DomainException('That email address is already in use.');
-        }
-
-        $userId = $this->userRepository->create([
-            'username' => $data['username'],
-            'email' => $data['email'],
-            'password_hash' => password_hash($data['password'], PASSWORD_DEFAULT),
-            'role' => 'User',
-        ]);
-
-        $user = $this->userRepository->findById($userId);
-
-        if ($user === null) {
-            throw new DomainException('User registration could not be completed.');
-        }
-
-        return $user;
     }
 
     public function logout(Request $request): void

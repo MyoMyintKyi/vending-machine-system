@@ -50,42 +50,6 @@ final class WebAuthRoutesTest extends TestCase
         $this->assertSame('Password is required.', $session['errors']['password']);
     }
 
-    public function testGetRegisterRouteDispatchesRegisterForm(): void
-    {
-        $session = [];
-        $router = $this->makeRouter();
-        $request = $this->makeRequest($session, 'GET', '/register');
-        $response = new Response();
-
-        ob_start();
-        $router->dispatch($request, $response);
-        $output = (string) ob_get_clean();
-
-        $this->assertSame('auth/register', $response->viewName());
-        $this->assertStringContainsString('<h1>Register</h1>', $output);
-    }
-
-    public function testPostRegisterRouteDispatchesValidationFailure(): void
-    {
-        $session = [];
-        $router = $this->makeRouter();
-        $request = $this->makeRequest($session, 'POST', '/register', [
-            'username' => '',
-            'email' => 'invalid-email',
-            'password' => 'short',
-            'password_confirmation' => 'mismatch',
-        ]);
-        $response = new Response();
-
-        $router->dispatch($request, $response);
-
-        $this->assertSame('/register', $response->redirectLocation());
-        $this->assertSame('Username is required.', $session['errors']['username']);
-        $this->assertSame('A valid email address is required.', $session['errors']['email']);
-        $this->assertSame('Password must be at least 8 characters.', $session['errors']['password']);
-        $this->assertSame('Password confirmation must match.', $session['errors']['password_confirmation']);
-    }
-
     public function testPostLogoutRouteRedirectsGuestsToLogin(): void
     {
         $session = [];

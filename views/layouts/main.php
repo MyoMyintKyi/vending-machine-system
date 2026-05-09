@@ -34,7 +34,6 @@
         </form>
     <?php else: ?>
         <a href="/login">Login</a>
-        <a href="/register">Register</a>
     <?php endif; ?>
 </nav>
 <?= $content ?>

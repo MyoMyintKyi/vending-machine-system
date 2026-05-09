@@ -16,8 +16,6 @@ $router->get('/', static function ($request, $response): void {
 
 $router->get('/login', [WebAuthController::class, 'loginForm']);
 $router->post('/login', [WebAuthController::class, 'login']);
-$router->get('/register', [WebAuthController::class, 'registerForm']);
-$router->post('/register', [WebAuthController::class, 'register']);
 $router->post('/logout', [WebAuthController::class, 'logout'], [AuthMiddleware::class]);
 
 $router->get('/dashboard', [DashboardController::class, 'index'], [AuthMiddleware::class]);
