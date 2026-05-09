@@ -190,6 +190,12 @@ final class ProductsController
 
     public function purchase(Request $request, Response $response): void
     {
+        if ((bool) $request->session('authenticated', false) !== true || (int) $request->session('user_id', 0) <= 0) {
+            $request->setSessionValue('flash', 'Please log in to continue.');
+            $response->redirect('/login');
+            return;
+        }
+
         $productId = (int) $request->route('id', 0);
         $product = $this->service()->findById($productId);
 

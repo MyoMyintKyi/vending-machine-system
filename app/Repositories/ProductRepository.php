@@ -96,13 +96,14 @@ final class ProductRepository
         )->rowCount() > 0;
     }
 
-    public function incrementStock(int $id, int $quantity): bool
+    public function decrementStock(int $id, int $quantity): bool
     {
         return $this->database->query(
-            'UPDATE products SET quantity_available = quantity_available + :increment_quantity WHERE id = :id',
+            'UPDATE products SET quantity_available = quantity_available - :decrement_quantity WHERE id = :id AND quantity_available >= :minimum_available_quantity',
             [
                 'id' => $id,
-                'increment_quantity' => $quantity,
+                'decrement_quantity' => $quantity,
+                'minimum_available_quantity' => $quantity,
             ]
         )->rowCount() > 0;
     }

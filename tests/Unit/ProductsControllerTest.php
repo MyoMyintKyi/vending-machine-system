@@ -358,9 +358,28 @@ final class ProductsControllerTest extends TestCase
         $this->assertSame('Coke', $response->viewData()['product']['name']);
     }
 
-    public function testPurchaseRedirectsBackWithValidationErrors(): void
+    public function testPurchaseRedirectsUnauthenticatedUsersToLogin(): void
     {
         $session = [];
+        $request = $this->makeRequest($session, 'POST', '/products/1/purchase', [], [
+            'quantity' => '1',
+        ], ['id' => '1']);
+        $response = new Response();
+        $service = $this->createProductServiceMock();
+        $purchaseService = $this->createPurchaseServiceMock();
+        $purchaseService->expects($this->never())->method('purchase');
+
+        $controller = new ProductsController($service, $purchaseService);
+
+        $controller->purchase($request, $response);
+
+        $this->assertSame('/login', $response->redirectLocation());
+        $this->assertSame('Please log in to continue.', $session['flash']);
+    }
+
+    public function testPurchaseRedirectsBackWithValidationErrors(): void
+    {
+        $session = ['authenticated' => true, 'user_id' => 7];
         $request = $this->makeRequest($session, 'POST', '/products/1/purchase', [], [
             'quantity' => '0',
         ], ['id' => '1']);
@@ -379,7 +398,7 @@ final class ProductsControllerTest extends TestCase
 
     public function testPurchaseRedirectsBackWhenPurchaseServiceRejectsRequest(): void
     {
-        $session = ['user_id' => 7];
+        $session = ['authenticated' => true, 'user_id' => 7];
         $request = $this->makeRequest($session, 'POST', '/products/1/purchase', [], [
             'quantity' => '4',
         ], ['id' => '1']);
@@ -399,7 +418,7 @@ final class ProductsControllerTest extends TestCase
 
     public function testPurchaseCompletesSuccessfully(): void
     {
-        $session = ['user_id' => 7];
+        $session = ['authenticated' => true, 'user_id' => 7];
         $request = $this->makeRequest($session, 'POST', '/products/1/purchase', [], [
             'quantity' => '2',
         ], ['id' => '1']);
