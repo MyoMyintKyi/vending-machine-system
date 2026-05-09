@@ -387,14 +387,14 @@ final class ProductsControllerTest extends TestCase
         $service = $this->createProductServiceMock();
         $service->method('findById')->with(1)->willReturn($this->productRecord());
         $purchaseService = $this->createPurchaseServiceMock();
-        $purchaseService->method('purchase')->willThrowException(new DomainException('Requested quantity exceeds available stock.'));
+        $purchaseService->method('purchase')->willThrowException(new DomainException('Product stock could not be updated.'));
 
         $controller = new ProductsController($service, $purchaseService);
 
         $controller->purchase($request, $response);
 
         $this->assertSame('/products/1/purchase', $response->redirectLocation());
-        $this->assertSame('Requested quantity exceeds available stock.', $session['errors']['quantity']);
+        $this->assertSame('Product stock could not be updated.', $session['errors']['quantity']);
     }
 
     public function testPurchaseCompletesSuccessfully(): void
@@ -416,6 +416,7 @@ final class ProductsControllerTest extends TestCase
                 'quantity' => 2,
                 'unit_price' => '3.990',
                 'total_amount' => '7.980',
+                'quantity_available' => 12,
             ]);
 
         $controller = new ProductsController($service, $purchaseService);
@@ -423,7 +424,7 @@ final class ProductsControllerTest extends TestCase
         $controller->purchase($request, $response);
 
         $this->assertSame('/products/1/purchase', $response->redirectLocation());
-        $this->assertSame('Purchase completed successfully. Quantity: 2. Total: 7.980.', $session['flash']);
+        $this->assertSame('Purchase completed successfully. Quantity: 2. Total: 7.980. Available quantity is now 12.', $session['flash']);
     }
 
     private function makeRequest(array &$session, string $method, string $uri, array $query = [], array $post = [], array $routeParams = []): Request

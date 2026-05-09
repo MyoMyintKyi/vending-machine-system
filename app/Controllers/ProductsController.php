@@ -199,7 +199,7 @@ final class ProductsController
         }
 
         $quantity = trim((string) $request->input('quantity', ''));
-        $errors = $this->validatePurchaseData($quantity, (int) $product['quantity_available']);
+        $errors = $this->validatePurchaseData($quantity);
 
         if ($errors !== []) {
             $this->redirectWithFormState($request, $response, '/products/' . $productId . '/purchase', $errors, [
@@ -224,9 +224,10 @@ final class ProductsController
         }
 
         $request->setSessionValue('flash', sprintf(
-            'Purchase completed successfully. Quantity: %d. Total: %s.',
+            'Purchase completed successfully. Quantity: %d. Total: %s. Available quantity is now %d.',
             $purchase['quantity'],
-            $purchase['total_amount']
+            $purchase['total_amount'],
+            $purchase['quantity_available']
         ));
         $response->redirect('/products/' . $productId . '/purchase');
     }
@@ -288,7 +289,7 @@ final class ProductsController
         return $errors;
     }
 
-    private function validatePurchaseData(string $quantity, int $availableQuantity): array
+    private function validatePurchaseData(string $quantity): array
     {
         $errors = [];
 
@@ -296,8 +297,6 @@ final class ProductsController
             $errors['quantity'] = 'Quantity is required.';
         } elseif (filter_var($quantity, FILTER_VALIDATE_INT) === false || (int) $quantity < 1) {
             $errors['quantity'] = 'Quantity must be an integer greater than or equal to 1.';
-        } elseif ((int) $quantity > $availableQuantity) {
-            $errors['quantity'] = 'Requested quantity exceeds available stock.';
         }
 
         return $errors;

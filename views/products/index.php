@@ -120,9 +120,7 @@ if ($totalPageCount <= 10) {
                         <td class="action-column-cell">
                             <div class="inline-actions">
                                 <a class="page-link" href="/products/<?= (int) $product['id'] ?>">View</a>
-                                <?php if (($role ?? '') === 'User'): ?>
-                                    <a class="page-link" href="/products/<?= (int) $product['id'] ?>/purchase">Purchase</a>
-                                <?php endif; ?>
+                                <a class="page-link" href="/products/<?= (int) $product['id'] ?>/purchase">Purchase</a>
                                 <?php if (($role ?? '') === 'Admin'): ?>
                                     <a class="page-link" href="/products/<?= (int) $product['id'] ?>/edit">Edit</a>
                                     <form action="/products/<?= (int) $product['id'] ?>/delete" method="post">

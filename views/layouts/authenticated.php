@@ -24,8 +24,6 @@
                 <?php if (($_SESSION['role'] ?? '') === 'Admin'): ?>
                     <a href="/products">Manage Products</a>
                     <a href="/admin">Admin</a>
-                <?php elseif (($_SESSION['role'] ?? '') === 'User'): ?>
-                    <a href="/products">Browse Products</a>
                 <?php endif; ?>
             </nav>
         </div>

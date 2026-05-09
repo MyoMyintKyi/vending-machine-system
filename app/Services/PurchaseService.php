@@ -36,20 +36,17 @@ final class PurchaseService implements PurchaseServiceInterface
             throw new DomainException('Product not found.');
         }
 
-        if ((int) $product['quantity_available'] < $quantity) {
-            throw new DomainException('Requested quantity exceeds available stock.');
-        }
-
         $unitPrice = number_format((float) $product['price'], 3, '.', '');
         $totalAmount = number_format((float) $unitPrice * $quantity, 3, '.', '');
+        $updatedQuantityAvailable = (int) $product['quantity_available'] + $quantity;
 
         $this->database->beginTransaction();
 
         try {
-            $decremented = $this->productRepository->decrementStock($productId, $quantity);
+            $incremented = $this->productRepository->incrementStock($productId, $quantity);
 
-            if (!$decremented) {
-                throw new DomainException('Requested quantity exceeds available stock.');
+            if (!$incremented) {
+                throw new DomainException('Product stock could not be updated.');
             }
 
             $transactionId = $this->transactionRepository->create([
@@ -69,6 +66,7 @@ final class PurchaseService implements PurchaseServiceInterface
                 'quantity' => $quantity,
                 'unit_price' => $unitPrice,
                 'total_amount' => $totalAmount,
+                'quantity_available' => $updatedQuantityAvailable,
             ];
         } catch (Throwable $throwable) {
             $this->database->rollBack();

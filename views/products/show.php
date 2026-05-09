@@ -41,10 +41,8 @@
     <article class="page-card">
         <p class="section-heading" style="color: var(--primary); margin-bottom: 0.8rem;">Actions</p>
         <div class="quick-actions">
-            <a class="btn-secondary" href="/products">Back to products</a>
-            <?php if (($role ?? '') === 'User'): ?>
-                <a class="btn" href="/products/<?= (int) ($product['id'] ?? 0) ?>/purchase">Purchase this product</a>
-            <?php endif; ?>
+            <a class="btn btn-secondary" href="/products">Back to products</a>
+            <a class="btn" href="/products/<?= (int) ($product['id'] ?? 0) ?>/purchase">Purchase this product</a>
             <?php if (($role ?? '') === 'Admin'): ?>
                 <a class="btn" href="/products/<?= (int) ($product['id'] ?? 0) ?>/edit">Edit this product</a>
                 <form action="/products/<?= (int) ($product['id'] ?? 0) ?>/delete" method="post">
