@@ -29,7 +29,7 @@ final class Response
         header('Location: ' . $location);
     }
 
-    public function view(string $view, array $data = [], string $layout = 'layouts/main'): void
+    public function view(string $view, array $data = [], string $layout = 'layouts/authenticated'): void
     {
         $this->viewName = $view;
         $this->viewData = $data;

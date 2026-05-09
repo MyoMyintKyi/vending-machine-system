@@ -31,6 +31,8 @@ final class WebAuthRoutesTest extends TestCase
 
         $this->assertSame('auth/login', $response->viewName());
         $this->assertStringContainsString('<h1>Login</h1>', $output);
+        $this->assertStringContainsString('Inventory Access', $output);
+        $this->assertStringNotContainsString('Logout', $output);
     }
 
     public function testPostLoginRouteDispatchesValidationFailure(): void

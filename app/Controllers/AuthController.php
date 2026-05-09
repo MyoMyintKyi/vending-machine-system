@@ -25,7 +25,7 @@ final class AuthController
             return;
         }
 
-        $response->view('auth/login', $this->consumeFormState($request));
+        $response->view('auth/login', $this->consumeFormState($request), 'layouts/guest');
     }
 
     public function login(Request $request, Response $response): void

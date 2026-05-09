@@ -44,11 +44,12 @@ final class ProductsControllerTest extends TestCase
 
         $controller = new ProductsController($service);
 
+        $output = '';
         ob_start();
         try {
             $controller->index($request, $response);
         } finally {
-            ob_end_clean();
+            $output = (string) ob_get_clean();
         }
 
         $this->assertSame('products/index', $response->viewName());
@@ -56,6 +57,52 @@ final class ProductsControllerTest extends TestCase
         $this->assertCount(1, $response->viewData()['products']);
         $this->assertSame(2, $response->viewData()['page']);
         $this->assertSame(2, $response->viewData()['totalPages']);
+        $this->assertStringContainsString('class="sort-link is-active"', $output);
+        $this->assertStringContainsString('Products pagination', $output);
+        $this->assertStringContainsString('class="pagination-link is-active"', $output);
+        $this->assertStringContainsString('>11<', $output);
+        $this->assertStringContainsString('Showing 11 - 11 | Page 2 of 2', $output);
+    }
+
+    public function testIndexCondensesPaginationWhenTotalPagesExceedTen(): void
+    {
+        $session = ['role' => 'Admin'];
+        $_SESSION = $session;
+        $request = $this->makeRequest($session, 'GET', '/products', [
+            'page' => 22,
+            'sort' => 'name',
+            'direction' => 'asc',
+        ]);
+        $response = new Response();
+        $service = $this->createProductServiceMock();
+        $service->expects($this->once())
+            ->method('countAll')
+            ->willReturn(240);
+        $service->expects($this->once())
+            ->method('findAll')
+            ->with(22, 10, 'name', 'asc')
+            ->willReturn([$this->productRecord()]);
+
+        $controller = new ProductsController($service);
+
+        $output = '';
+        ob_start();
+        try {
+            $controller->index($request, $response);
+        } finally {
+            $output = (string) ob_get_clean();
+        }
+
+        $this->assertStringContainsString('>211<', $output);
+        $this->assertStringContainsString('Showing 211 - 211 | Page 22 of 24', $output);
+        $this->assertStringContainsString('>1<', $output);
+        $this->assertStringContainsString('>2<', $output);
+        $this->assertStringContainsString('>3<', $output);
+        $this->assertStringContainsString('>21<', $output);
+        $this->assertStringContainsString('class="pagination-link is-active" href="/products?page=22&sort=name&direction=asc">22</a>', $output);
+        $this->assertStringContainsString('>23<', $output);
+        $this->assertStringContainsString('>24<', $output);
+        $this->assertStringContainsString('class="pagination-ellipsis">...</span>', $output);
     }
 
     public function testShowReturnsNotFoundWhenProductDoesNotExist(): void

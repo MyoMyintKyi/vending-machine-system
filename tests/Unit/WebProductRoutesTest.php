@@ -55,6 +55,7 @@ final class WebProductRoutesTest extends TestCase
     {
         $session = [
             'authenticated' => true,
+            'username' => 'admin',
             'role' => 'Admin',
         ];
         $_SESSION = $session;
@@ -64,9 +65,11 @@ final class WebProductRoutesTest extends TestCase
 
         ob_start();
         $router->dispatch($request, $response);
-        ob_end_clean();
+        $output = (string) ob_get_clean();
 
         $this->assertSame('products/create', $response->viewName());
+        $this->assertStringContainsString('Signed in as admin (Admin)', $output);
+        $this->assertStringContainsString('Logout', $output);
     }
 
     public function testProductStoreRouteHandlesValidationFailureForAdmins(): void
