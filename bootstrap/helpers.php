@@ -1,0 +1,28 @@
+<?php
+
+declare(strict_types=1);
+
+if (!function_exists('base_path')) {
+    function base_path(string $path = ''): string
+    {
+        $basePath = __DIR__ . '/..';
+
+        return $path === '' ? $basePath : $basePath . '/' . ltrim($path, '/');
+    }
+}
+
+if (!function_exists('config_path')) {
+    function config_path(string $path = ''): string
+    {
+        return base_path('config' . ($path === '' ? '' : '/' . ltrim($path, '/')));
+    }
+}
+
+if (!function_exists('env')) {
+    function env(string $key, ?string $default = null): ?string
+    {
+        $value = $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key);
+
+        return $value === false || $value === null ? $default : (string) $value;
+    }
+}
