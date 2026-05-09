@@ -6,6 +6,7 @@ namespace App\Controllers;
 
 use App\Repositories\UserRepository;
 use App\Services\AuthService;
+use App\Interfaces\AuthServiceInterface;
 use Core\Database;
 use Core\Request;
 use Core\Response;
@@ -14,7 +15,7 @@ use DomainException;
 final class AuthController
 {
     public function __construct(
-        private readonly ?AuthService $authService = null
+        private readonly ?AuthServiceInterface $authService = null
     ) {
     }
 
@@ -138,9 +139,9 @@ final class AuthController
         $response->redirect('/login');
     }
 
-    private function service(): AuthService
+    private function service(): AuthServiceInterface
     {
-        if ($this->authService instanceof AuthService) {
+        if ($this->authService instanceof AuthServiceInterface) {
             return $this->authService;
         }
 

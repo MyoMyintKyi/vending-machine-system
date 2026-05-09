@@ -30,15 +30,11 @@
                         <td><?= htmlspecialchars((string) $product['quantity_available'], ENT_QUOTES, 'UTF-8') ?></td>
                         <td>
                             <a href="/products/<?= (int) $product['id'] ?>">View</a>
-                            <?php if (($role ?? '') === 'User'): ?>
-                                <a href="/products/<?= (int) $product['id'] ?>/purchase">Purchase</a>
-                            <?php endif; ?>
-                            <?php if (($role ?? '') === 'Admin'): ?>
-                                <a href="/products/<?= (int) $product['id'] ?>/edit">Edit</a>
-                                <form action="/products/<?= (int) $product['id'] ?>/delete" method="post" style="display:inline">
-                                    <button type="submit">Delete</button>
-                                </form>
-                            <?php endif; ?>
+                            <a href="/products/<?= (int) $product['id'] ?>/purchase">Purchase</a>
+                            <a href="/products/<?= (int) $product['id'] ?>/edit">Edit</a>
+                            <form action="/products/<?= (int) $product['id'] ?>/delete" method="post" style="display:inline">
+                                <button type="submit">Delete</button>
+                            </form>
                         </td>
                     </tr>
                 <?php endforeach; ?>

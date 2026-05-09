@@ -8,7 +8,7 @@ use App\Repositories\UserRepository;
 use Core\Request;
 use DomainException;
 
-final class AuthService
+final class AuthService implements \App\Interfaces\AuthServiceInterface
 {
     public function __construct(
         private readonly UserRepository $userRepository
