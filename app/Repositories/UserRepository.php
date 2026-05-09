@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Interfaces\UserRepositoryInterface;
 use Core\Database;
 
-final class UserRepository
+final class UserRepository implements UserRepositoryInterface
 {
     public function __construct(
         private readonly Database $database

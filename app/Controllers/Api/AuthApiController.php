@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers\Api;
 
+use App\Interfaces\UserRepositoryInterface;
 use App\Repositories\UserRepository;
 use App\Services\JwtService;
 use Core\Database;
@@ -13,6 +14,12 @@ use Throwable;
 
 final class AuthApiController
 {
+    public function __construct(
+        private readonly ?UserRepositoryInterface $userRepository = null,
+        private readonly ?JwtService $jwtService = null
+    ) {
+    }
+
     public function login(Request $request, Response $response): void
     {
         $identifier = trim((string) $request->input('identifier', $request->input('email', '')));
@@ -43,7 +50,7 @@ final class AuthApiController
             return;
         }
 
-        $jwtService = new JwtService();
+        $jwtService = $this->jwtService();
         $token = $jwtService->issueToken($user);
 
         $response->json([
@@ -120,7 +127,7 @@ final class AuthApiController
             return;
         }
 
-        $jwtService = new JwtService();
+        $jwtService = $this->jwtService();
 
         $response->json([
             'success' => true,
@@ -134,11 +141,20 @@ final class AuthApiController
         ], 201);
     }
 
-    private function userRepository(): UserRepository
+    private function userRepository(): UserRepositoryInterface
     {
+        if ($this->userRepository instanceof UserRepositoryInterface) {
+            return $this->userRepository;
+        }
+
         $database = new Database(require config_path('database.php'));
 
         return new UserRepository($database);
+    }
+
+    private function jwtService(): JwtService
+    {
+        return $this->jwtService ?? new JwtService();
     }
 
     private function userData(array $user): array
