@@ -14,13 +14,13 @@ VALUES
     (
         'admin',
         'admin@example.com',
-        '$2y$10$8m9sXquaxEekqWJx9Mx2au9fIlW5xFhQQA4xBu0xM0gzM4Q3t6V.y',
+        '$2y$12$RTKvlzoCdqKPjTczV7dxC.g9Zq15prIOrrpiu5QIKfUrsKkusXfJC',
         'Admin'
     ),
     (
         'user',
         'user@example.com',
-        '$2y$10$8m9sXquaxEekqWJx9Mx2au9fIlW5xFhQQA4xBu0xM0gzM4Q3t6V.y',
+        '$2y$12$s5fzsUj5E8zwzLdoOVlSIuYFjRPra9ObMeZqfo8YiQ87y5teOunWG',
         'User'
     )
 ON DUPLICATE KEY UPDATE

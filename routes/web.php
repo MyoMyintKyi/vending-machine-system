@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Controllers\AuthController as WebAuthController;
 use App\Controllers\DashboardController;
-use App\Controllers\TestController;
+use App\Controllers\ProductsController;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\RoleMiddleware;
 
@@ -23,6 +23,12 @@ $router->post('/logout', [WebAuthController::class, 'logout'], [AuthMiddleware::
 $router->get('/dashboard', [DashboardController::class, 'index'], [AuthMiddleware::class]);
 $router->get('/admin', [DashboardController::class, 'admin'], [AuthMiddleware::class, [RoleMiddleware::class, 'Admin']]);
 
-$router->get('/test', [TestController::class, 'index']);
-$router->get('/test/protected', [TestController::class, 'authenticated'], [AuthMiddleware::class]);
-$router->get('/test/admin', [TestController::class, 'adminOnly'], [AuthMiddleware::class, [RoleMiddleware::class, 'Admin']]);
+$router->get('/products', [ProductsController::class, 'index'], [AuthMiddleware::class]);
+$router->get('/products/create', [ProductsController::class, 'create'], [AuthMiddleware::class, [RoleMiddleware::class, 'Admin']]);
+$router->post('/products', [ProductsController::class, 'store'], [AuthMiddleware::class, [RoleMiddleware::class, 'Admin']]);
+$router->get('/products/{id}', [ProductsController::class, 'show'], [AuthMiddleware::class]);
+$router->get('/products/{id}/edit', [ProductsController::class, 'edit'], [AuthMiddleware::class, [RoleMiddleware::class, 'Admin']]);
+$router->post('/products/{id}/update', [ProductsController::class, 'update'], [AuthMiddleware::class, [RoleMiddleware::class, 'Admin']]);
+$router->post('/products/{id}/delete', [ProductsController::class, 'destroy'], [AuthMiddleware::class, [RoleMiddleware::class, 'Admin']]);
+$router->get('/products/{id}/purchase', [ProductsController::class, 'purchaseForm'], [AuthMiddleware::class, [RoleMiddleware::class, 'User']]);
+$router->post('/products/{id}/purchase', [ProductsController::class, 'purchase'], [AuthMiddleware::class, [RoleMiddleware::class, 'User']]);

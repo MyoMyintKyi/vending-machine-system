@@ -12,6 +12,11 @@
             <li>Email: <?= htmlspecialchars((string) ($email ?? ''), ENT_QUOTES, 'UTF-8') ?></li>
             <li>Role: <?= htmlspecialchars((string) ($role ?? ''), ENT_QUOTES, 'UTF-8') ?></li>
         </ul>
-        <p><a href="/test/protected">Open protected test route</a></p>
+
+        <?php if (($role ?? '') === 'Admin'): ?>
+            <p><a href="/products">Go to product management</a></p>
+        <?php elseif (($role ?? '') === 'User'): ?>
+            <p><a href="/products">Browse products to purchase</a></p>
+        <?php endif; ?>
     </section>
 </main>

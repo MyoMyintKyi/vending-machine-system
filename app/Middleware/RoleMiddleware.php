@@ -27,10 +27,13 @@ final class RoleMiddleware implements MiddlewareInterface
             return true;
         }
 
-        $response->json([
-            'success' => false,
-            'message' => 'Forbidden',
-        ], 403);
+        http_response_code(403);
+        $response->view('auth/forbidden', [
+            'title' => 'Access Denied',
+            'message' => 'You do not have permission to access this page.',
+            'requiredRole' => $this->role,
+            'currentRole' => (string) $request->session('role', 'Guest'),
+        ]);
 
         return false;
     }

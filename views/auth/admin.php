@@ -6,6 +6,6 @@
             <li>Username: <?= htmlspecialchars((string) ($username ?? ''), ENT_QUOTES, 'UTF-8') ?></li>
             <li>Role: <?= htmlspecialchars((string) ($role ?? ''), ENT_QUOTES, 'UTF-8') ?></li>
         </ul>
-        <p><a href="/test/admin">Open admin-only test route</a></p>
+        <p><a href="/products">Open product management</a></p>
     </section>
 </main>

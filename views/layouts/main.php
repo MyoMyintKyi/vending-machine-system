@@ -20,10 +20,14 @@
 </head>
 <body>
 <nav>
-    <a href="/test">Test</a>
-    <a href="/dashboard">Dashboard</a>
-    <a href="/admin">Admin</a>
     <?php if (!empty($_SESSION['authenticated'])): ?>
+        <a href="/dashboard">Dashboard</a>
+        <?php if (($_SESSION['role'] ?? '') === 'Admin'): ?>
+            <a href="/products">Manage Products</a>
+            <a href="/admin">Admin</a>
+        <?php elseif (($_SESSION['role'] ?? '') === 'User'): ?>
+            <a href="/products">Browse Products</a>
+        <?php endif; ?>
         <span>Signed in as <?= htmlspecialchars((string) ($_SESSION['username'] ?? ''), ENT_QUOTES, 'UTF-8') ?> (<?= htmlspecialchars((string) ($_SESSION['role'] ?? ''), ENT_QUOTES, 'UTF-8') ?>)</span>
         <form action="/logout" method="post">
             <button type="submit">Logout</button>
