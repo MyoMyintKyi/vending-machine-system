@@ -31,7 +31,7 @@ final class WebAuthRoutesTest extends TestCase
 
         $this->assertSame('auth/login', $response->viewName());
         $this->assertStringContainsString('<h1>Login</h1>', $output);
-        $this->assertStringContainsString('Inventory Access', $output);
+        $this->assertStringContainsString('Use your username or email and password to sign in.', $output);
         $this->assertStringNotContainsString('Logout', $output);
     }
 
