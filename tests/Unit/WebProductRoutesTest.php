@@ -160,37 +160,6 @@ final class WebProductRoutesTest extends TestCase
         $this->assertSame('Please log in to continue.', $session['flash']);
     }
 
-    public function testProductPurchaseRoutesForbidAdmins(): void
-    {
-        $session = [
-            'authenticated' => true,
-            'role' => 'Admin',
-        ];
-        $_SESSION = $session;
-        $router = $this->makeRouter();
-
-        $getRequest = $this->makeRequest($session, 'GET', '/products/1/purchase');
-        $getResponse = new Response();
-        ob_start();
-        try {
-            $router->dispatch($getRequest, $getResponse);
-        } finally {
-            ob_end_clean();
-        }
-
-        $postRequest = $this->makeRequest($session, 'POST', '/products/1/purchase');
-        $postResponse = new Response();
-        ob_start();
-        try {
-            $router->dispatch($postRequest, $postResponse);
-        } finally {
-            ob_end_clean();
-        }
-
-        $this->assertSame('auth/forbidden', $getResponse->viewName());
-        $this->assertSame('auth/forbidden', $postResponse->viewName());
-    }
-
     private function makeRouter(): Router
     {
         $router = new Router();

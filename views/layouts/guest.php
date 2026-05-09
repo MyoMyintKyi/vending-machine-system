@@ -11,17 +11,10 @@
     <div class="guest-wrapper">
         <section class="guest-hero">
             <div class="hero-copy">
-                <h1 class="text-center">Inventory Access</h1>
-                <p class="text-center">Track products, control stock, and handle user purchases.</p>
-            </div>
-
-            <div class="hero-highlights">
-                <div class="hero-highlight">Track products</div>
-                <div class="hero-highlight">Control stock</div>
-                <div class="hero-highlight">Handle purchases</div>
+                <h1 class="text-center">Vending Machine System</h1>
+                <p class="text-center">Manage products, purchases, and transactions.</p>
             </div>
         </section>
-
         <?= $content ?>
     </div>
 </div>

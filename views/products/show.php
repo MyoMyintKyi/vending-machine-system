@@ -18,31 +18,39 @@
 
 <section class="split-grid">
     <article class="page-card">
-        <dl class="info-list">
-            <div>
-                <dt>Price</dt>
-                <dd><?= htmlspecialchars(number_format((float) ($product['price'] ?? 0), 3, '.', ''), ENT_QUOTES, 'UTF-8') ?></dd>
+        <div class="data-points">
+            <div class="data-point">
+                <strong>Product Name</strong>
+                <span><?= htmlspecialchars((string) ($product['name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
             </div>
-            <div>
-                <dt>Quantity Available</dt>
-                <dd><?= htmlspecialchars((string) ($product['quantity_available'] ?? 0), ENT_QUOTES, 'UTF-8') ?></dd>
+            <div class="data-point">
+                <strong>Price</strong>
+                <span><?= htmlspecialchars((string) ($product['price'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
             </div>
-            <div>
-                <dt>Created At</dt>
-                <dd><?= htmlspecialchars((string) ($product['created_at'] ?? ''), ENT_QUOTES, 'UTF-8') ?></dd>
+            <div class="data-point">
+                <strong>Price</strong>
+                <span><?= htmlspecialchars((string) ($product['price'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
             </div>
-            <div>
-                <dt>Updated At</dt>
-                <dd><?= htmlspecialchars((string) ($product['updated_at'] ?? ''), ENT_QUOTES, 'UTF-8') ?></dd>
+            <div class="data-point">
+                <strong>Quantity Available</strong>
+                <span><?= htmlspecialchars((string) ($product['quantity_available'] ?? 0), ENT_QUOTES, 'UTF-8') ?></span>
             </div>
-        </dl>
+            <div class="data-point">
+                <strong>Created At</strong>
+                <span><?= htmlspecialchars((string) ($product['created_at'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
+            </div>
+        </div>
     </article>
 
     <article class="page-card">
         <p class="section-heading" style="color: var(--primary); margin-bottom: 0.8rem;">Actions</p>
         <div class="quick-actions">
             <a class="btn btn-secondary" href="/products">Back to products</a>
-            <a class="btn" href="/products/<?= (int) ($product['id'] ?? 0) ?>/purchase">Purchase this product</a>
+            <?php if ((int) ($product['quantity_available'] ?? 0) > 0): ?>
+                <a class="btn" href="/products/<?= (int) ($product['id'] ?? 0) ?>/purchase">Purchase this product</a>
+            <?php else: ?>
+                <span class="btn btn-secondary" aria-disabled="true">Out of stock</span>
+            <?php endif; ?>
             <?php if (($role ?? '') === 'Admin'): ?>
                 <a class="btn" href="/products/<?= (int) ($product['id'] ?? 0) ?>/edit">Edit this product</a>
                 <form action="/products/<?= (int) ($product['id'] ?? 0) ?>/delete" method="post">

@@ -22,23 +22,19 @@
             <nav class="auth-nav">
                 <a href="/dashboard">Dashboard</a>
                 <?php if (($_SESSION['role'] ?? '') === 'Admin'): ?>
+                    <a href="/transactions">Transactions</a>
                     <a href="/products">Manage Products</a>
                     <a href="/admin">Admin</a>
                 <?php endif; ?>
             </nav>
-        </div>
-
-        <div class="sidebar-footer">
-            <p>Signed in as <?= htmlspecialchars((string) ($_SESSION['username'] ?? ''), ENT_QUOTES, 'UTF-8') ?> (<?= htmlspecialchars((string) ($_SESSION['role'] ?? ''), ENT_QUOTES, 'UTF-8') ?>)</p>
-            <p class="muted">Session navigation adapts to your role.</p>
         </div>
     </aside>
 
     <div class="auth-main">
         <header class="topbar">
             <div>
-                <p class="topbar-title">Operations Dashboard</p>
-                <p class="topbar-subtitle">Manage inventory, purchases, and admin workflows from one place.</p>
+                <p class="topbar-title">Operation Dashboard</p>
+                <p class="topbar-subtitle">Manage products, purchases, and transactions.</p>
             </div>
             <div class="topbar-actions">
                 <span class="user-badge">Signed in as <?= htmlspecialchars((string) ($_SESSION['username'] ?? ''), ENT_QUOTES, 'UTF-8') ?> (<?= htmlspecialchars((string) ($_SESSION['role'] ?? ''), ENT_QUOTES, 'UTF-8') ?>)</span>

@@ -1,7 +1,6 @@
 <section class="page-header page-header-split">
     <div class="page-header-copy">
-        <h1>Purchase <?= htmlspecialchars((string) ($product['name'] ?? 'Product'), ENT_QUOTES, 'UTF-8') ?></h1>
-        <p>Add purchased stock to the current inventory count.</p>
+        <h1>Purchase</h1>
     </div>
 
     <nav class="breadcrumb" aria-label="Breadcrumb">
@@ -21,8 +20,12 @@
     <article class="page-card">
         <div class="data-points">
             <div class="data-point">
+                <strong>Product Name</strong>
+                <span><?= htmlspecialchars((string) ($product['name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
+            </div>
+            <div class="data-point">
                 <strong>Price</strong>
-                <span><?= htmlspecialchars(number_format((float) ($product['price'] ?? 0), 3, '.', ''), ENT_QUOTES, 'UTF-8') ?></span>
+                <span><?= htmlspecialchars((string) ($product['price'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
             </div>
             <div class="data-point">
                 <strong>Quantity available</strong>
@@ -36,17 +39,24 @@
             <div class="alert alert-danger"><?= htmlspecialchars((string) $errors['quantity'], ENT_QUOTES, 'UTF-8') ?></div>
         <?php endif; ?>
 
-        <form method="post" action="/products/<?= (int) ($product['id'] ?? 0) ?>/purchase" class="form-grid">
-            <div class="field-group">
-                <label class="field-label" for="quantity">Purchase Quantity</label>
-                <input id="quantity" name="quantity" type="number" min="1" step="1" required value="<?= htmlspecialchars((string) (($old['quantity'] ?? '1')), ENT_QUOTES, 'UTF-8') ?>">
-                <p class="helper-text">Enter the quantity to add to the available stock.</p>
-            </div>
+        <?php if ((int) ($product['quantity_available'] ?? 0) > 0): ?>
+            <form method="post" action="/products/<?= (int) ($product['id'] ?? 0) ?>/purchase" class="form-grid">
+                <div class="field-group">
+                    <label class="field-label" for="quantity">Purchase Quantity</label>
+                    <input id="quantity" name="quantity" type="number" min="1" step="1" max="<?= (int) ($product['quantity_available'] ?? 0) ?>" required value="<?= htmlspecialchars((string) (($old['quantity'] ?? '1')), ENT_QUOTES, 'UTF-8') ?>">
+                    <p class="helper-text">Enter the quantity to deduct from available stock.</p>
+                </div>
 
+                <div class="form-actions">
+                    <a class="btn btn-secondary" href="/products">Back to product</a>
+                    <button class="btn" type="submit">Purchase</button>
+                </div>
+            </form>
+        <?php else: ?>
+            <div class="alert alert-warning">This product is out of stock and cannot be purchased right now.</div>
             <div class="form-actions">
-                <button class="btn" type="submit">Purchase</button>
-                <a class="btn btn-secondary" href="/products/<?= (int) ($product['id'] ?? 0) ?>">Back to product</a>
+                <a class="btn btn-secondary" href="/products">Back to product</a>
             </div>
-        </form>
+        <?php endif; ?>
     </article>
 </section>

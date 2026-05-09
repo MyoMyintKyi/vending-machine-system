@@ -36,6 +36,7 @@
     <article class="page-card">
         <p class="section-heading" style="color: var(--primary); margin-bottom: 0.8rem;">Actions</p>
         <div class="quick-actions">
+            <a class="btn" href="/transactions">Open transactions module</a>
             <a class="btn" href="/products">Open product management</a>
             <a class="btn-secondary" href="/dashboard">Return to dashboard</a>
         </div>

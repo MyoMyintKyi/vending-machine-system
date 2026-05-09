@@ -14,7 +14,6 @@
             <div class="field-group">
                 <label class="field-label" for="identifier">Username or Email</label>
                 <input id="identifier" name="identifier" type="text" required value="<?= htmlspecialchars((string) ($old['identifier'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
-                <p class="helper-text">Use the account identifier assigned to your profile.</p>
                 <?php if (!empty($errors['identifier'])): ?>
                     <div class="alert alert-danger"><?= htmlspecialchars((string) $errors['identifier'], ENT_QUOTES, 'UTF-8') ?></div>
                 <?php endif; ?>

@@ -68,6 +68,7 @@ if ($totalPageCount <= 10) {
 
 <section class="table-card">
     <div class="table-card-header">
+        <div></div>
         <div class="table-tools">
             <?php if (($role ?? '') === 'Admin'): ?>
                 <a class="btn" href="/products/create">Create product</a>
@@ -82,7 +83,9 @@ if ($totalPageCount <= 10) {
             <table>
                 <thead>
                 <tr>
-                    <th class="row-number-heading">No.</th>
+                    <th class="row-number-heading">
+                        <span class="not-sort-link">No.</span>
+                    </th>
                     <th>
                         <a class="sort-link<?= $sortField === 'name' ? ' is-active' : '' ?>" href="/products?sort=name&direction=<?= $sortField === 'name' && $sortOrder === 'asc' ? 'desc' : 'asc' ?>">
                             <span>Name</span>
@@ -101,7 +104,9 @@ if ($totalPageCount <= 10) {
                             <span class="sort-direction"><?= $sortField === 'quantity_available' ? ($sortOrder === 'desc' ? '↓' : '↑') : '↓↑' ?></span>
                         </a>
                     </th>
-                    <th class="action-column-heading">Actions</th>
+                    <th class="action-column-heading">
+                        <span class="not-sort-link">Actions</span>
+                    </th>
                 </tr>
                 </thead>
                 <tbody>
@@ -111,7 +116,7 @@ if ($totalPageCount <= 10) {
                         <td>
                             <strong><?= htmlspecialchars((string) $product['name'], ENT_QUOTES, 'UTF-8') ?></strong>
                         </td>
-                        <td><?= htmlspecialchars(number_format((float) $product['price'], 3, '.', ''), ENT_QUOTES, 'UTF-8') ?></td>
+                        <td><?= htmlspecialchars((string) $product['price'], ENT_QUOTES, 'UTF-8') ?></td>
                         <td>
                             <span class="status-pill<?= (int) $product['quantity_available'] === 0 ? ' is-warning' : '' ?>">
                                 <?= htmlspecialchars((string) $product['quantity_available'], ENT_QUOTES, 'UTF-8') ?> in stock
@@ -120,7 +125,11 @@ if ($totalPageCount <= 10) {
                         <td class="action-column-cell">
                             <div class="inline-actions">
                                 <a class="page-link" href="/products/<?= (int) $product['id'] ?>">View</a>
-                                <a class="page-link" href="/products/<?= (int) $product['id'] ?>/purchase">Purchase</a>
+                                <?php if ((int) $product['quantity_available'] > 0): ?>
+                                    <a class="page-link" href="/products/<?= (int) $product['id'] ?>/purchase">Purchase</a>
+                                <?php else: ?>
+                                    <span class="page-link is-disabled" aria-disabled="true">Out of stock</span>
+                                <?php endif; ?>
                                 <?php if (($role ?? '') === 'Admin'): ?>
                                     <a class="page-link" href="/products/<?= (int) $product['id'] ?>/edit">Edit</a>
                                     <form action="/products/<?= (int) $product['id'] ?>/delete" method="post">

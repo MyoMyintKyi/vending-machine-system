@@ -105,6 +105,36 @@ final class ProductsControllerTest extends TestCase
         $this->assertStringContainsString('class="pagination-ellipsis">...</span>', $output);
     }
 
+    public function testIndexShowsOutOfStockStateWhenInventoryIsZero(): void
+    {
+        $session = ['role' => 'User'];
+        $_SESSION = $session;
+        $request = $this->makeRequest($session, 'GET', '/products');
+        $response = new Response();
+        $service = $this->createProductServiceMock();
+        $service->expects($this->once())
+            ->method('countAll')
+            ->willReturn(1);
+        $service->expects($this->once())
+            ->method('findAll')
+            ->with(1, 10, 'name', 'asc')
+            ->willReturn([$this->productRecord(['quantity_available' => 0])]);
+
+        $controller = new ProductsController($service);
+
+        $output = '';
+        ob_start();
+        try {
+            $controller->index($request, $response);
+        } finally {
+            $output = (string) ob_get_clean();
+        }
+
+        $this->assertStringContainsString('0 in stock', $output);
+        $this->assertStringContainsString('Out of stock', $output);
+        $this->assertStringNotContainsString('/products/1/purchase', $output);
+    }
+
     public function testShowReturnsNotFoundWhenProductDoesNotExist(): void
     {
         $session = [];
@@ -143,6 +173,30 @@ final class ProductsControllerTest extends TestCase
 
         $this->assertSame('products/show', $response->viewName());
         $this->assertSame('Coke', $response->viewData()['product']['name']);
+    }
+
+    public function testShowDisablesPurchaseActionWhenInventoryIsZero(): void
+    {
+        $session = ['role' => 'User'];
+        $_SESSION = $session;
+        $request = $this->makeRequest($session, 'GET', '/products/1', [], [], ['id' => '1']);
+        $response = new Response();
+        $service = $this->createProductServiceMock();
+        $service->method('findById')->with(1)->willReturn($this->productRecord(['quantity_available' => 0]));
+
+        $controller = new ProductsController($service);
+
+        $output = '';
+        ob_start();
+        try {
+            $controller->show($request, $response);
+        } finally {
+            $output = (string) ob_get_clean();
+        }
+
+        $this->assertSame('products/show', $response->viewName());
+        $this->assertStringContainsString('Out of stock', $output);
+        $this->assertStringNotContainsString('/products/1/purchase', $output);
     }
 
     public function testCreateRendersCreateView(): void
@@ -358,6 +412,30 @@ final class ProductsControllerTest extends TestCase
         $this->assertSame('Coke', $response->viewData()['product']['name']);
     }
 
+    public function testPurchaseFormShowsOutOfStockStateWhenInventoryIsZero(): void
+    {
+        $session = [];
+        $request = $this->makeRequest($session, 'GET', '/products/1/purchase', [], [], ['id' => '1']);
+        $response = new Response();
+        $service = $this->createProductServiceMock();
+        $service->method('findById')->with(1)->willReturn($this->productRecord(['quantity_available' => 0]));
+        $purchaseService = $this->createPurchaseServiceMock();
+
+        $controller = new ProductsController($service, $purchaseService);
+
+        $output = '';
+        ob_start();
+        try {
+            $controller->purchaseForm($request, $response);
+        } finally {
+            $output = (string) ob_get_clean();
+        }
+
+        $this->assertSame('products/purchase', $response->viewName());
+        $this->assertStringContainsString('cannot be purchased right now', $output);
+        $this->assertStringNotContainsString('type="submit">Purchase</button>', $output);
+    }
+
     public function testPurchaseRedirectsUnauthenticatedUsersToLogin(): void
     {
         $session = [];
@@ -435,7 +513,7 @@ final class ProductsControllerTest extends TestCase
                 'quantity' => 2,
                 'unit_price' => '3.990',
                 'total_amount' => '7.980',
-                'quantity_available' => 12,
+                'quantity_available' => 8,
             ]);
 
         $controller = new ProductsController($service, $purchaseService);
@@ -443,7 +521,7 @@ final class ProductsControllerTest extends TestCase
         $controller->purchase($request, $response);
 
         $this->assertSame('/products/1/purchase', $response->redirectLocation());
-        $this->assertSame('Purchase completed successfully. Quantity: 2. Total: 7.980. Available quantity is now 12.', $session['flash']);
+        $this->assertSame('Purchase completed successfully. Quantity: 2. Total: 7.980. Available quantity is now 8.', $session['flash']);
     }
 
     private function makeRequest(array &$session, string $method, string $uri, array $query = [], array $post = [], array $routeParams = []): Request
@@ -474,15 +552,15 @@ final class ProductsControllerTest extends TestCase
         return $this->createMock(PurchaseServiceInterface::class);
     }
 
-    private function productRecord(): array
+    private function productRecord(array $overrides = []): array
     {
-        return [
+        return array_replace([
             'id' => 1,
             'name' => 'Coke',
             'price' => '3.990',
             'quantity_available' => 10,
             'created_at' => '2026-05-09 10:00:00',
             'updated_at' => '2026-05-09 10:00:00',
-        ];
+        ], $overrides);
     }
 }

@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Interfaces\PurchaseServiceInterface;
 use App\Repositories\ProductRepository;
 use App\Repositories\TransactionRepository;
+use App\Support\PriceFormatter;
 use Core\Database;
 use DomainException;
 use Throwable;
@@ -36,8 +37,8 @@ final class PurchaseService implements PurchaseServiceInterface
             throw new DomainException('Product not found.');
         }
 
-        $unitPrice = number_format((float) $product['price'], 3, '.', '');
-        $totalAmount = number_format((float) $unitPrice * $quantity, 3, '.', '');
+        $unitPrice = PriceFormatter::normalize((string) $product['price']);
+        $totalAmount = PriceFormatter::normalize((float) $unitPrice * $quantity);
         $availableQuantity = (int) $product['quantity_available'];
 
         if ($availableQuantity < $quantity) {
@@ -49,10 +50,7 @@ final class PurchaseService implements PurchaseServiceInterface
         $this->database->beginTransaction();
 
         try {
-            var_dump("Start - Decrement stock result: ");
-
             $decremented = $this->productRepository->decrementStock($productId, $quantity);
-
 
             if (!$decremented) {
                 throw new DomainException('Product stock could not be updated.');
@@ -83,7 +81,7 @@ final class PurchaseService implements PurchaseServiceInterface
             if ($throwable instanceof DomainException) {
                 throw $throwable;
             }
-            var_dump($throwable->getMessage() . ' in ' . $throwable->getFile() . ' on line ' . $throwable->getLine());
+
             throw new DomainException('Purchase could not be completed. Please try again.');
         }
     }

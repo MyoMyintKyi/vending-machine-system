@@ -45,7 +45,7 @@
         </div>
 
         <div class="form-actions">
-            <a class="btn btn-secondary" href="/products/<?= (int) ($product['id'] ?? 0) ?>">Cancel</a>
+            <a class="btn btn-secondary" href="/products">Cancel</a>
             <button class="btn" type="submit">Update Product</button>
         </div>
     </form>

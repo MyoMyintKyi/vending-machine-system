@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Controllers\Api;
+namespace App\Controllers;
 
 use App\Interfaces\TransactionServiceInterface;
 use App\Repositories\TransactionRepository;
@@ -11,7 +11,7 @@ use Core\Database;
 use Core\Request;
 use Core\Response;
 
-final class TransactionApiController
+final class TransactionController
 {
     public function __construct(
         private readonly ?TransactionServiceInterface $transactionService = null
@@ -21,25 +21,25 @@ final class TransactionApiController
     public function index(Request $request, Response $response): void
     {
         $page = max(1, (int) $request->query('page', 1));
-        $perPage = max(1, min(100, (int) $request->query('per_page', 10)));
+        $perPage = 10;
         $filters = $this->filters($request);
-        $service = $this->service();
-        $total = $service->countFiltered($filters);
-        $overview = $service->getOverview($page, $perPage, $filters);
+        $totalTransactions = $this->service()->countFiltered($filters);
+        $totalPages = max(1, (int) ceil($totalTransactions / $perPage));
+        $page = min($page, $totalPages);
+        $overview = $this->service()->getOverview($page, $perPage, $filters);
 
-        $response->json([
-            'success' => true,
-            'data' => [
-                'items' => (array) ($overview['transactions'] ?? []),
-                'pagination' => [
-                    'page' => $page,
-                    'per_page' => $perPage,
-                    'total' => $total,
-                    'total_pages' => max(1, (int) ceil($total / $perPage)),
-                ],
-                'filters' => $filters,
-            ],
-            'message' => 'Transactions retrieved successfully.',
+        $response->view('transactions/index', [
+            'title' => 'Transactions Module',
+            'flash' => (string) $request->pullSessionValue('flash', ''),
+            'role' => (string) $request->session('role', ''),
+            'metrics' => (array) ($overview['metrics'] ?? []),
+            'transactions' => (array) ($overview['transactions'] ?? []),
+            'filters' => $filters,
+            'page' => $page,
+            'perPage' => $perPage,
+            'totalPages' => $totalPages,
+            'hasPreviousPage' => $page > 1,
+            'hasNextPage' => $page < $totalPages,
         ]);
     }
 

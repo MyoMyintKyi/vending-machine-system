@@ -46,7 +46,7 @@
 
         <div class="form-actions">
             <button class="btn" type="submit">Create Product</button>
-            <a class="btn-secondary" href="/products">Cancel</a>
+            <a class="btn btn-secondary" href="/products">Cancel</a>
         </div>
     </form>
 </section>
