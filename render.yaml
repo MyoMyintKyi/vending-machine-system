@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: vending-machine-system
+    runtime: docker
+    plan: free
+    autoDeployTrigger: commit
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health

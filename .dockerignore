@@ -1,0 +1,8 @@
+.env
+.env.testing
+.git
+.gitignore
+.phpunit.cache
+Archive.zip
+tests
+vendor

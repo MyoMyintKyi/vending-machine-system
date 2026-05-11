@@ -209,6 +209,54 @@ Composer shortcut:
 composer test
 ```
 
+## Deploying To Render With Docker
+
+This repository now includes a `Dockerfile` and `render.yaml` Blueprint for a Docker-based Render web service.
+
+The Blueprint is configured for the Render free tier and uses the Dockerfile's existing startup command, which binds PHP's built-in server to Render's required `PORT` environment variable.
+
+Use these settings when creating a Render web service:
+
+- Environment: `Docker`
+- Instance type: `free`
+- Dockerfile path: `./Dockerfile`
+- Health check path: `/api/health`
+
+If you use the Blueprint flow, Render can read these settings directly from `render.yaml`.
+
+Set these environment variables in Render:
+
+- `APP_ENV=production`
+- `APP_DEBUG=false`
+- `APP_URL` to your Render service URL
+- `DB_HOST` for your external MySQL-compatible database
+- `DB_PORT` usually `3306`
+- `DB_NAME`
+- `DB_USER`
+- `DB_PASSWORD`
+- `DB_CHARSET` usually `utf8mb4`
+- `SESSION_NAME`
+- `JWT_SECRET`
+- `JWT_TTL`
+
+The Blueprint already generates `JWT_SECRET` and prompts for sensitive values such as database credentials during initial creation.
+
+The container excludes your local `.env` from the image, so Render environment variables are the source of truth in production.
+
+Free-tier notes:
+
+- Render free web services can cold start after inactivity.
+- Render free web services do not include MySQL, so this app requires an external MySQL-compatible database.
+- PHP sessions are file-based in the container, so users can be logged out after instance restarts or sleeps.
+
+Suggested deploy flow:
+
+1. Push this repository with `Dockerfile`, `.dockerignore`, and `render.yaml` committed.
+2. In Render, create a new Blueprint or Web Service from the repository.
+3. Keep the detected Docker configuration and confirm the free instance plan.
+4. Supply the external MySQL connection values when Render prompts for env vars.
+5. After the first deploy completes, open `/api/health` to confirm the service is healthy.
+
 ## Current Validation State
 
 The current implementation passes the PHPUnit suite.
