@@ -31,6 +31,39 @@ final class WebProductRoutesTest extends TestCase
         $this->assertSame('Please log in to continue.', $session['flash']);
     }
 
+    public function testCatalogRouteRedirectsGuestsToLogin(): void
+    {
+        $session = [];
+        $router = $this->makeRouter();
+        $request = $this->makeRequest($session, 'GET', '/catalog');
+        $response = new Response();
+
+        $router->dispatch($request, $response);
+
+        $this->assertSame('/login', $response->redirectLocation());
+        $this->assertSame('Please log in to continue.', $session['flash']);
+    }
+
+    public function testCatalogRouteForbidsAdmins(): void
+    {
+        $session = [
+            'authenticated' => true,
+            'role' => 'Admin',
+        ];
+        $_SESSION = $session;
+        $router = $this->makeRouter();
+        $request = $this->makeRequest($session, 'GET', '/catalog');
+        $response = new Response();
+
+        ob_start();
+        $router->dispatch($request, $response);
+        ob_end_clean();
+
+        $this->assertSame('auth/forbidden', $response->viewName());
+        $this->assertSame('User', $response->viewData()['requiredRole']);
+        $this->assertSame('Admin', $response->viewData()['currentRole']);
+    }
+
     public function testProductCreateRouteForbidsNonAdminUsers(): void
     {
         $session = [
@@ -152,12 +185,52 @@ final class WebProductRoutesTest extends TestCase
         $session = [];
         $router = $this->makeRouter();
 
-        $getRequest = $this->makeRequest($session, 'GET', '/products/1/purchase');
+        $getRequest = $this->makeRequest($session, 'GET', '/products/1-coke/purchase');
         $getResponse = new Response();
         $router->dispatch($getRequest, $getResponse);
 
         $this->assertSame('/login', $getResponse->redirectLocation());
         $this->assertSame('Please log in to continue.', $session['flash']);
+    }
+
+    public function testProductPurchaseGetRouteForbidsAdmins(): void
+    {
+        $session = [
+            'authenticated' => true,
+            'role' => 'Admin',
+        ];
+        $_SESSION = $session;
+        $router = $this->makeRouter();
+        $request = $this->makeRequest($session, 'GET', '/products/1-coke/purchase');
+        $response = new Response();
+
+        ob_start();
+        $router->dispatch($request, $response);
+        ob_end_clean();
+
+        $this->assertSame('auth/forbidden', $response->viewName());
+        $this->assertSame('User', $response->viewData()['requiredRole']);
+        $this->assertSame('Admin', $response->viewData()['currentRole']);
+    }
+
+    public function testProductPurchasePostRouteForbidsAdmins(): void
+    {
+        $session = [
+            'authenticated' => true,
+            'role' => 'Admin',
+        ];
+        $_SESSION = $session;
+        $router = $this->makeRouter();
+        $request = $this->makeRequest($session, 'POST', '/products/1-coke/purchase');
+        $response = new Response();
+
+        ob_start();
+        $router->dispatch($request, $response);
+        ob_end_clean();
+
+        $this->assertSame('auth/forbidden', $response->viewName());
+        $this->assertSame('User', $response->viewData()['requiredRole']);
+        $this->assertSame('Admin', $response->viewData()['currentRole']);
     }
 
     private function makeRouter(): Router

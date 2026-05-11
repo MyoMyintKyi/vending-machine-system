@@ -52,6 +52,36 @@ final class ProductsController
         ]);
     }
 
+    public function catalog(Request $request, Response $response): void
+    {
+        $page = max(1, (int) $request->query('page', 1));
+        $perPage = 20;
+        $totalProducts = max(1, $this->service()->countAll());
+        $products = $this->service()->findAll(1, $totalProducts, 'name', 'asc');
+        $filters = $this->catalogFilters($request);
+        $sort = $this->catalogSort($request);
+        $products = $this->applyCatalogFilters($products, $filters);
+        $products = $this->applyCatalogSort($products, $sort);
+        $totalFilteredProducts = count($products);
+        $totalPages = max(1, (int) ceil($totalFilteredProducts / $perPage));
+        $page = min($page, $totalPages);
+        $products = $this->paginateCatalogProducts($products, $page, $perPage);
+
+        $response->view('products/catalog', [
+            'title' => 'Product Catalog',
+            'flash' => (string) $request->pullSessionValue('flash', ''),
+            'products' => $products,
+            'role' => (string) $request->session('role', ''),
+            'filters' => $filters,
+            'sort' => $sort,
+            'page' => $page,
+            'perPage' => $perPage,
+            'totalPages' => $totalPages,
+            'hasPreviousPage' => $page > 1,
+            'hasNextPage' => $page < $totalPages,
+        ]);
+    }
+
     public function show(Request $request, Response $response): void
     {
         $product = $this->service()->findById((int) $request->route('id', 0));
@@ -207,9 +237,10 @@ final class ProductsController
 
         $quantity = trim((string) $request->input('quantity', ''));
         $errors = $this->validatePurchaseData($quantity);
+        $purchasePath = product_purchase_path($productId, (string) ($product['name'] ?? 'product'));
 
         if ($errors !== []) {
-            $this->redirectWithFormState($request, $response, '/products/' . $productId . '/purchase', $errors, [
+            $this->redirectWithFormState($request, $response, $purchasePath, $errors, [
                 'quantity' => $quantity,
             ]);
             return;
@@ -222,7 +253,7 @@ final class ProductsController
                 (int) $quantity
             );
         } catch (DomainException $exception) {
-            $this->redirectWithFormState($request, $response, '/products/' . $productId . '/purchase', [
+            $this->redirectWithFormState($request, $response, $purchasePath, [
                 'quantity' => $exception->getMessage(),
             ], [
                 'quantity' => $quantity,
@@ -236,7 +267,7 @@ final class ProductsController
             CurrencyFormatter::formatUsd((string) $purchase['total_amount']),
             $purchase['quantity_available']
         ));
-        $response->redirect('/products/' . $productId . '/purchase');
+        $response->redirect($purchasePath);
     }
 
     private function service(): ProductServiceInterface
@@ -307,6 +338,56 @@ final class ProductsController
         }
 
         return $errors;
+    }
+
+    private function catalogFilters(Request $request): array
+    {
+        return [
+            'name' => trim((string) $request->query('name', '')),
+        ];
+    }
+
+    private function catalogSort(Request $request): string
+    {
+        $sort = trim((string) $request->query('sort', 'name_asc'));
+        $allowedSorts = ['name_asc', 'name_desc', 'price_asc', 'price_desc'];
+
+        return in_array($sort, $allowedSorts, true) ? $sort : 'name_asc';
+    }
+
+    private function applyCatalogFilters(array $products, array $filters): array
+    {
+        $name = (string) ($filters['name'] ?? '');
+
+        if ($name === '') {
+            return $products;
+        }
+
+        return array_values(array_filter(
+            $products,
+            static fn (array $product): bool => stripos((string) ($product['name'] ?? ''), $name) !== false
+        ));
+    }
+
+    private function applyCatalogSort(array $products, string $sort): array
+    {
+        usort($products, static function (array $left, array $right) use ($sort): int {
+            return match ($sort) {
+                'name_desc' => strcasecmp((string) ($right['name'] ?? ''), (string) ($left['name'] ?? '')),
+                'price_asc' => (float) ($left['price'] ?? 0) <=> (float) ($right['price'] ?? 0),
+                'price_desc' => (float) ($right['price'] ?? 0) <=> (float) ($left['price'] ?? 0),
+                default => strcasecmp((string) ($left['name'] ?? ''), (string) ($right['name'] ?? '')),
+            };
+        });
+
+        return $products;
+    }
+
+    private function paginateCatalogProducts(array $products, int $page, int $perPage): array
+    {
+        $offset = max(0, ($page - 1) * $perPage);
+
+        return array_slice($products, $offset, $perPage);
     }
 
     private function redirectWithFormState(Request $request, Response $response, string $path, array $errors, array $old): void

@@ -21,6 +21,7 @@ $router->post('/login', [WebAuthController::class, 'login']);
 $router->post('/logout', [WebAuthController::class, 'logout'], [AuthMiddleware::class]);
 
 $router->get('/dashboard', [DashboardController::class, 'index'], [AuthMiddleware::class]);
+$router->get('/catalog', [ProductsController::class, 'catalog'], [AuthMiddleware::class, [RoleMiddleware::class, 'User']]);
 $router->get('/users', [UsersController::class, 'index'], [AuthMiddleware::class, [RoleMiddleware::class, 'Admin']]);
 $router->get('/transactions', [TransactionController::class, 'index'], [AuthMiddleware::class, [RoleMiddleware::class, 'Admin']]);
 
@@ -32,5 +33,5 @@ $router->get('/products/{id}/edit', [ProductsController::class, 'edit'], [AuthMi
 $router->post('/products/{id}/update', [ProductsController::class, 'update'], [AuthMiddleware::class, [RoleMiddleware::class, 'Admin']]);
 $router->post('/products/{id}/delete', [ProductsController::class, 'destroy'], [AuthMiddleware::class, [RoleMiddleware::class, 'Admin']]);
 
-$router->get('/products/{id}/purchase', [ProductsController::class, 'purchaseForm'], [AuthMiddleware::class, [RoleMiddleware::class, 'Admin']]);
-$router->post('/products/{id}/purchase', [ProductsController::class, 'purchase'], [AuthMiddleware::class, [RoleMiddleware::class, 'Admin']]);
+$router->get('/products/{id}-{slug}/purchase', [ProductsController::class, 'purchaseForm'], [AuthMiddleware::class, [RoleMiddleware::class, 'User']]);
+$router->post('/products/{id}-{slug}/purchase', [ProductsController::class, 'purchase'], [AuthMiddleware::class, [RoleMiddleware::class, 'User']]);

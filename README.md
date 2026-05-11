@@ -1,112 +1,55 @@
-# Vending Machine System Tester Overview
+# Vending Machine System
 
-## Purpose
+## Overview
 
-This project is a PHP 8.2 vending machine system with two entry points:
+This project is a PHP 8.2 vending machine system with two application surfaces:
 
-- A server-rendered web application for internal users.
-- A JSON REST API for external or frontend clients.
+- a server-rendered web application for session-authenticated users
+- a JSON REST API for JWT-authenticated clients
 
-For system testing, focus on authentication, role-based access control, product inventory changes, purchase transaction logging, validation behavior, pagination and sorting, and parity between web and API behavior.
+The web experience is split by role:
 
-## System Summary
+- `Admin` users manage products from `/products`
+- `User` users browse products from `/catalog`
+- product purchases use SEO-friendly web URLs in the form `/products/{id}-{slug}/purchase`
 
-- Language and runtime: PHP 8.2+
-- Database: MySQL
-- Data access: PDO
-- Web authentication: PHP sessions
-- API authentication: JWT bearer tokens
-- Test framework: PHPUnit 11
-- Frontend style: server-rendered PHP views under `views/`
+## Core Features
 
-The application bootstraps from `public/index.php`, loads routes from `routes/web.php` and `routes/api.php`, then dispatches requests through the custom router in `core/Router.php`.
+- Web login/logout with PHP sessions
+- JWT login/register for the API
+- Admin product CRUD
+- User product catalog with card-style UI
+- Catalog filter by product name
+- Catalog sorting by name and price
+- Catalog pagination
+- Purchase workflow with stock deduction and transaction logging
+- Transaction and user monitoring for admins
+- PHPUnit unit and integration coverage
 
-## Functional Modules
+## Roles And Access
 
-### 1. Authentication
+### Admin
 
-- Web login route: `POST /login`
-- API login route: `POST /api/auth/login`
-- API registration route: `POST /api/auth/register`
-- Web login accepts either username or email, password.
-- API login accepts `identifier` or `email`, password.
+- Access `/products` for product management
+- Create, update, and delete products
+- Access `/users`
+- Access `/transactions`
+- Use admin-only API routes under `/api/users`, `/api/products`, and `/api/transactions`
 
-### 2. Product Management
+### User
 
-- Create, list, view, edit, update, and delete products.
-- Products store `name`, `price`, and `quantity_available`.
-- Prices are stored as `DECIMAL(10,3)`.
-- Product list supports pagination and sorting.
+- Access `/dashboard`
+- Access `/catalog`
+- Filter, sort, and paginate the product catalog
+- Purchase products from `/products/{id}-{slug}/purchase`
+- Purchase products through `POST /api/products/{id}/purchase`
 
-### 3. Purchase Flow
+### Guest
 
-- A purchase reduces `products.quantity_available`.
-- A successful purchase creates a row in `transactions`.
-- Invalid quantity or insufficient stock should fail without partial updates.
+- Can access `/` and `/login`
+- Is redirected to `/login` from protected web routes
 
-### 4. User and Transaction Monitoring
-
-- Admin users can review user listings and transaction listings.
-- Transaction filtering supports `transaction_type`, `username`, and `product_name`.
-
-## Roles And Access Expectations
-
-Two roles exist in the system:
-
-- `Admin`: can manage products, view users, and review transactions.
-- `User`: can authenticate and browse dashboard.
-
-Expected protection model from the codebase and tests:
-
-- Guests should be redirected from protected web routes to `/login`.
-- Admin-only web pages should render a forbidden view for authenticated non-admin users.
-- Protected API routes should return `401` for missing or invalid tokens.
-- Admin-only API routes should return `403` for authenticated users without the required role.
-
-Important verification note:
-
-- The current code and repository notes indicate web purchase should be available to authenticated users.
-- The current `routes/web.php` file applies admin middleware to `/products/{id}/purchase` as well.
-- Treat this as a high-value tester checkpoint because intended behavior and route configuration may diverge.
-
-## Database Overview
-
-The database schema defines three main tables:
-
-### `users`
-
-- `id`
-- `username`
-- `email`
-- `password_hash`
-- `role` with values `Admin` or `User`
-- timestamps
-
-### `products`
-
-- `id`
-- `name`
-- `price`
-- `quantity_available`
-- timestamps
-
-### `transactions`
-
-- `id`
-- `user_id`
-- `product_id`
-- `quantity`
-- `unit_price`
-- `total_amount`
-- `transaction_type`
-- `created_at`
-
-Relationships:
-
-- `transactions.user_id` references `users.id`
-- `transactions.product_id` references `products.id`
-
-## Web Routes For System Testing
+## Web Routes
 
 ### Public
 
@@ -119,7 +62,19 @@ Relationships:
 - `POST /logout`
 - `GET /dashboard`
 
-### Admin-only web routes
+### User-only Web Routes
+
+- `GET /catalog`
+- `GET /products/{id}-{slug}/purchase`
+- `POST /products/{id}-{slug}/purchase`
+
+Catalog query parameters:
+
+- `name` for product-name filtering
+- `sort` with `name_asc`, `name_desc`, `price_asc`, `price_desc`
+- `page` for pagination
+
+### Admin-only Web Routes
 
 - `GET /users`
 - `GET /transactions`
@@ -131,14 +86,7 @@ Relationships:
 - `POST /products/{id}/update`
 - `POST /products/{id}/delete`
 
-### Purchase web routes to verify carefully
-
-- `GET /products/{id}/purchase`
-- `POST /products/{id}/purchase`
-
-These routes are currently protected by admin middleware in routing, but the product UI and repository notes suggest they should be available to authenticated users. This is a likely functional discrepancy worth documenting during system test execution.
-
-## API Routes For System Testing
+## API Routes
 
 ### Public API
 
@@ -146,9 +94,10 @@ These routes are currently protected by admin middleware in routing, but the pro
 - `POST /api/auth/login`
 - `POST /api/auth/register`
 
-### JWT-protected API
+### JWT-Protected API
 
 - `GET /api/dashboard`
+- `POST /api/products/{id}/purchase`
 
 ### Admin-only JWT API
 
@@ -158,55 +107,57 @@ These routes are currently protected by admin middleware in routing, but the pro
 - `POST /api/products`
 - `PUT /api/products/{id}`
 - `DELETE /api/products/{id}`
-- `POST /api/products/{id}/purchase`
 - `GET /api/transactions`
 
-## High-Value System Test Scenarios
+The API purchase endpoint remains `/api/products/{id}/purchase`, but it is now protected for authenticated `User` tokens instead of `Admin` tokens. The SEO-friendly slugged purchase URL change still applies only to the web application.
 
-### Authentication
+## Web Purchase Flow
 
-- Verify guest access to protected web pages redirects to `/login`.
-- Verify login fails when identifier or password is blank.
-- Verify login succeeds with valid credentials and redirects to `/dashboard`.
-- Verify logout clears session state.
-- Verify API login returns a bearer token and user payload.
-- Verify API register creates a new user with role `User`.
+1. Sign in as a `User`.
+2. Open `/catalog`.
+3. Optionally filter by name or change the sort order.
+4. Click `Buy now` for an in-stock item.
+5. The application routes to `/products/{id}-{slug}/purchase`.
+6. Submit the quantity.
+7. On success, stock is reduced and a transaction is recorded.
 
-### Authorization
+Out-of-stock products render a disabled purchase state instead of an active purchase button.
 
-- Verify a `User` cannot open admin web pages such as `/products/create`, `/users`, and `/transactions`.
-- Verify a `User` token receives `403` on admin-only API endpoints.
-- Verify invalid or missing API bearer tokens receive `401`.
+## Postman Collection
 
-### Product Management
+The collection is stored at `postman/VendingMachineAPI.postman_collection.json`.
 
-- Verify admin can create, edit, view, and delete products.
-- Verify validation errors appear when `name` is empty, `price <= 0`, or `quantity_available < 0`.
-- Verify product list sorting by `name`, `price`, and `quantity_available`.
-- Verify pagination behavior on product list pages.
+It now includes:
 
-### Purchase And Inventory
+- API requests for authentication, products, users, dashboard, and transactions
+- API purchase requests using the standard user JWT token
+- web reference requests for `/catalog`
+- web reference requests for the SEO-friendly purchase URL `/products/{id}-{slug}/purchase`
 
-- Verify successful purchase reduces stock and records a transaction.
-- Verify out-of-stock items do not show an active purchase action in the web list.
-- Verify purchase fails for non-positive quantity.
-- Verify purchase fails when requested quantity exceeds stock.
-- Verify transaction list reflects completed purchases.
+Collection variables:
 
-### API Contract
+- `base_url` default `http://localhost:8000`
+- `jwt_token` for a standard user API token
+- `admin_jwt_token` for an admin API token
+- `product_id` for slugged web purchase requests
+- `product_slug` for slugged web purchase requests
+- `web_session_cookie` for session-authenticated web requests in Postman
 
-- Verify API responses use JSON with `success`, `data`, and `message` shapes.
-- Verify create and purchase endpoints return `201` on success.
-- Verify validation failures return `422`.
-- Verify missing resources return `404`.
+For the web reference requests, set `web_session_cookie` to a valid session cookie such as `PHPSESSID=...` after logging in through the browser or another web login flow.
 
-## Local Setup For Testers
+## Local Setup
 
-### 1. Configure environment
+### 1. Install dependencies
 
-The application reads configuration from `.env` if present, otherwise `.env.example`.
+```bash
+composer install
+```
 
-Required keys:
+### 2. Configure environment
+
+Provide database and app settings through `.env`, `.env.example`, or your local environment variables.
+
+Common keys:
 
 - `APP_URL`
 - `DB_HOST`
@@ -218,22 +169,16 @@ Required keys:
 - `JWT_SECRET`
 - `JWT_TTL`
 
-### 2. Create and seed the database
+### 3. Create and seed the database
 
-Run the SQL scripts in this order:
+Run:
 
 1. `database/schema.sql`
 2. `database/seed.sql`
 
-For isolated integration testing, use `.env.testing` with:
+For isolated integration testing, use `.env.testing` and the test schema/seed scripts.
 
-- database name `vending_machine_test`
-- separate session name
-- separate JWT secret
-
-### 3. Start the application
-
-Example local server command:
+### 4. Start the app
 
 ```bash
 php -S localhost:8000 -t public
@@ -241,10 +186,10 @@ php -S localhost:8000 -t public
 
 Then open:
 
-- Web UI: `http://example.com`
-- API health check: `http://example.com/api/health`
+- Web UI: `http://localhost:8000`
+- API health: `http://localhost:8000/api/health`
 
-## Running Automated Tests
+## Running Tests
 
 Unit tests:
 
@@ -264,17 +209,13 @@ Composer shortcut:
 composer test
 ```
 
-## Known Testing Risks
+## Current Validation State
 
-- Seeded plaintext passwords are not documented; use the SQL reset above if needed.
-- Web purchase authorization may not match intended role behavior.
-- Integration tests depend on a separate MySQL database configured through `.env.testing`.
-- API product access is currently admin-only, so API-based browsing as a standard user is not supported in the present route configuration.
+The current implementation passes the PHPUnit suite.
 
-## Suggested Test Evidence To Capture
+## Notes
 
-- Screenshots of web access control behavior for guest, user, and admin sessions.
-- Example API responses for `200`, `201`, `401`, `403`, `404`, and `422` cases.
-- Before and after stock counts for a successful purchase.
-- Matching transaction row created for the purchase.
-- Any discrepancy between intended purchase access and actual route protection.
+- The catalog UI is the intended product-browsing path for standard users.
+- The admin product table is a management surface, not the shopper flow.
+- Web purchase URLs are slugged for readability and SEO friendliness.
+- API product browsing remains admin-only, while API purchase is now available to authenticated `User` tokens.

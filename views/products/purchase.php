@@ -1,6 +1,9 @@
 <?php
 use App\Support\ViewNumberFormatter;
 use App\Support\CurrencyFormatter;
+
+$catalogHref = '/catalog';
+$purchasePath = product_purchase_path((int) ($product['id'] ?? 0), (string) ($product['name'] ?? 'product'));
 ?>
 
 <section class="page-header page-header-split">
@@ -11,7 +14,7 @@ use App\Support\CurrencyFormatter;
     <nav class="breadcrumb" aria-label="Breadcrumb">
         <ol class="breadcrumb-list">
             <li><a href="/dashboard">Dashboard</a></li>
-            <li><a href="/products">Products</a></li>
+            <li><a href="<?= htmlspecialchars($catalogHref, ENT_QUOTES, 'UTF-8') ?>">Catalog</a></li>
             <li><span class="breadcrumb-current">Purchase</span></li>
         </ol>
     </nav>
@@ -45,7 +48,7 @@ use App\Support\CurrencyFormatter;
         <?php endif; ?>
 
         <?php if ((int) ($product['quantity_available'] ?? 0) > 0): ?>
-            <form method="post" action="/products/<?= (int) ($product['id'] ?? 0) ?>/purchase" class="form-grid">
+            <form method="post" action="<?= htmlspecialchars($purchasePath, ENT_QUOTES, 'UTF-8') ?>" class="form-grid">
                 <div class="field-group">
                     <label class="field-label" for="quantity">Purchase Quantity</label>
                     <input id="quantity" name="quantity" type="number" min="1" step="1" max="<?= (int) ($product['quantity_available'] ?? 0) ?>" required value="<?= htmlspecialchars((string) (($old['quantity'] ?? '1')), ENT_QUOTES, 'UTF-8') ?>">
@@ -53,14 +56,14 @@ use App\Support\CurrencyFormatter;
                 </div>
 
                 <div class="form-actions">
-                    <a class="btn btn-secondary" href="/products">Back to product</a>
+                    <a class="btn btn-secondary" href="<?= htmlspecialchars($catalogHref, ENT_QUOTES, 'UTF-8') ?>">Back to product catalog</a>
                     <button class="btn" type="submit">Purchase</button>
                 </div>
             </form>
         <?php else: ?>
             <div class="alert alert-warning">This product is out of stock and cannot be purchased right now.</div>
             <div class="form-actions">
-                <a class="btn btn-secondary" href="/products">Back to product</a>
+                <a class="btn btn-secondary" href="<?= htmlspecialchars($catalogHref, ENT_QUOTES, 'UTF-8') ?>">Back to product catalog</a>
             </div>
         <?php endif; ?>
     </article>

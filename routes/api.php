@@ -29,6 +29,6 @@ $router->get('/api/products/{id}', [ProductApiController::class, 'show'], [[ApiA
 $router->post('/api/products', [ProductApiController::class, 'store'], [[ApiAuthMiddleware::class, 'Admin']]);
 $router->put('/api/products/{id}', [ProductApiController::class, 'update'], [[ApiAuthMiddleware::class, 'Admin']]);
 $router->delete('/api/products/{id}', [ProductApiController::class, 'destroy'], [[ApiAuthMiddleware::class, 'Admin']]);
-$router->post('/api/products/{id}/purchase', [ProductApiController::class, 'purchase'], [[ApiAuthMiddleware::class, 'Admin']]);
+$router->post('/api/products/{id}/purchase', [ProductApiController::class, 'purchase'], [[ApiAuthMiddleware::class, 'User']]);
 
 $router->get('/api/transactions', [TransactionApiController::class, 'index'], [[ApiAuthMiddleware::class, 'Admin']]);

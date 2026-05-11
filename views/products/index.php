@@ -128,10 +128,12 @@ if ($totalPageCount <= 10) {
                         <td class="action-column-cell">
                             <div class="inline-actions">
                                 <a class="page-link" href="/products/<?= (int) $product['id'] ?>">View</a>
-                                <?php if ((int) $product['quantity_available'] > 0): ?>
-                                    <a class="page-link" href="/products/<?= (int) $product['id'] ?>/purchase">Purchase</a>
-                                <?php else: ?>
-                                    <span class="page-link is-disabled" aria-disabled="true">Out of stock</span>
+                                <?php if (($role ?? '') === 'User'): ?>
+                                    <?php if ((int) $product['quantity_available'] > 0): ?>
+                                        <a class="page-link" href="<?= htmlspecialchars(product_purchase_path((int) $product['id'], (string) $product['name']), ENT_QUOTES, 'UTF-8') ?>">Purchase</a>
+                                    <?php else: ?>
+                                        <span class="page-link is-disabled" aria-disabled="true">Out of stock</span>
+                                    <?php endif; ?>
                                 <?php endif; ?>
                                 <?php if (($role ?? '') === 'Admin'): ?>
                                     <a class="page-link" href="/products/<?= (int) $product['id'] ?>/edit">Edit</a>

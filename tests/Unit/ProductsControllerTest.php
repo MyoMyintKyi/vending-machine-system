@@ -132,7 +132,194 @@ final class ProductsControllerTest extends TestCase
 
         $this->assertStringContainsString('0 in stock', $output);
         $this->assertStringContainsString('Out of stock', $output);
-        $this->assertStringNotContainsString('/products/1/purchase', $output);
+        $this->assertStringNotContainsString('/products/1-coke/purchase', $output);
+    }
+
+    public function testCatalogRendersCardStyleProductsForUserRole(): void
+    {
+        $session = ['role' => 'User'];
+        $_SESSION = $session;
+        $request = $this->makeRequest($session, 'GET', '/catalog');
+        $response = new Response();
+        $service = $this->createProductServiceMock();
+        $service->expects($this->once())
+            ->method('countAll')
+            ->willReturn(2);
+        $service->expects($this->once())
+            ->method('findAll')
+            ->with(1, 2, 'name', 'asc')
+            ->willReturn([
+                $this->productRecord(),
+                $this->productRecord([
+                    'id' => 2,
+                    'name' => 'Water',
+                    'quantity_available' => 0,
+                ]),
+            ]);
+
+        $controller = new ProductsController($service);
+
+        $output = '';
+        ob_start();
+        try {
+            $controller->catalog($request, $response);
+        } finally {
+            $output = (string) ob_get_clean();
+        }
+
+        $this->assertSame('products/catalog', $response->viewName());
+        $this->assertSame('User', $response->viewData()['role']);
+        $this->assertSame(['name' => ''], $response->viewData()['filters']);
+        $this->assertSame('name_asc', $response->viewData()['sort']);
+        $this->assertSame(1, $response->viewData()['page']);
+        $this->assertSame(20, $response->viewData()['perPage']);
+        $this->assertSame(1, $response->viewData()['totalPages']);
+        $this->assertStringContainsString('Product Catalog', $output);
+        $this->assertStringContainsString('Filter by product name', $output);
+        $this->assertStringContainsString('Buy now', $output);
+        $this->assertStringContainsString('Out of stock', $output);
+        $this->assertStringContainsString('/products/1-coke/purchase', $output);
+    }
+
+    public function testCatalogPaginatesProducts(): void
+    {
+        $session = ['role' => 'User'];
+        $_SESSION = $session;
+        $request = $this->makeRequest($session, 'GET', '/catalog', [
+            'page' => 2,
+        ]);
+        $response = new Response();
+        $service = $this->createProductServiceMock();
+        $service->expects($this->once())
+            ->method('countAll')
+            ->willReturn(21);
+        $service->expects($this->once())
+            ->method('findAll')
+            ->with(1, 21, 'name', 'asc')
+            ->willReturn([
+                $this->productRecord(['id' => 1, 'name' => 'Alpha']),
+                $this->productRecord(['id' => 2, 'name' => 'Bravo']),
+                $this->productRecord(['id' => 3, 'name' => 'Charlie']),
+                $this->productRecord(['id' => 4, 'name' => 'Delta']),
+                $this->productRecord(['id' => 5, 'name' => 'Echo']),
+                $this->productRecord(['id' => 6, 'name' => 'Foxtrot']),
+                $this->productRecord(['id' => 7, 'name' => 'Golf']),
+                $this->productRecord(['id' => 8, 'name' => 'Hotel']),
+                $this->productRecord(['id' => 9, 'name' => 'India']),
+                $this->productRecord(['id' => 10, 'name' => 'Juliet']),
+                $this->productRecord(['id' => 11, 'name' => 'Kilo']),
+                $this->productRecord(['id' => 12, 'name' => 'Lima']),
+                $this->productRecord(['id' => 13, 'name' => 'Mike']),
+                $this->productRecord(['id' => 14, 'name' => 'November']),
+                $this->productRecord(['id' => 15, 'name' => 'Oscar']),
+                $this->productRecord(['id' => 16, 'name' => 'Papa']),
+                $this->productRecord(['id' => 17, 'name' => 'Quebec']),
+                $this->productRecord(['id' => 18, 'name' => 'Romeo']),
+                $this->productRecord(['id' => 19, 'name' => 'Sierra']),
+                $this->productRecord(['id' => 20, 'name' => 'Tango']),
+                $this->productRecord(['id' => 21, 'name' => 'Uniform']),
+            ]);
+
+        $controller = new ProductsController($service);
+
+        $output = '';
+        ob_start();
+        try {
+            $controller->catalog($request, $response);
+        } finally {
+            $output = (string) ob_get_clean();
+        }
+
+        $this->assertSame('products/catalog', $response->viewName());
+        $this->assertSame(2, $response->viewData()['page']);
+        $this->assertSame(20, $response->viewData()['perPage']);
+        $this->assertSame(2, $response->viewData()['totalPages']);
+        $this->assertCount(1, $response->viewData()['products']);
+        $this->assertSame('Uniform', $response->viewData()['products'][0]['name']);
+        $this->assertStringContainsString('Catalog pagination', $output);
+    }
+
+    public function testCatalogFiltersByProductNameAndSortsProducts(): void
+    {
+        $session = ['role' => 'User'];
+        $_SESSION = $session;
+        $request = $this->makeRequest($session, 'GET', '/catalog', [
+            'name' => 'co',
+            'sort' => 'name_desc',
+        ]);
+        $response = new Response();
+        $service = $this->createProductServiceMock();
+        $service->expects($this->once())
+            ->method('countAll')
+            ->willReturn(3);
+        $service->expects($this->once())
+            ->method('findAll')
+            ->with(1, 3, 'name', 'asc')
+            ->willReturn([
+                $this->productRecord(['id' => 1, 'name' => 'Coke']),
+                $this->productRecord(['id' => 2, 'name' => 'Cola']),
+                $this->productRecord(['id' => 3, 'name' => 'Water']),
+            ]);
+
+        $controller = new ProductsController($service);
+
+        $output = '';
+        ob_start();
+        try {
+            $controller->catalog($request, $response);
+        } finally {
+            $output = (string) ob_get_clean();
+        }
+
+        $this->assertSame('products/catalog', $response->viewName());
+        $this->assertSame(['name' => 'co'], $response->viewData()['filters']);
+        $this->assertSame('name_desc', $response->viewData()['sort']);
+    $this->assertSame(1, $response->viewData()['page']);
+    $this->assertSame(1, $response->viewData()['totalPages']);
+        $this->assertCount(2, $response->viewData()['products']);
+        $this->assertSame('Cola', $response->viewData()['products'][0]['name']);
+        $this->assertSame('Coke', $response->viewData()['products'][1]['name']);
+        $this->assertStringContainsString('value="co"', $output);
+    }
+
+    public function testCatalogShowsEmptyStateWhenFilterDoesNotMatchAnyProducts(): void
+    {
+        $session = ['role' => 'User'];
+        $_SESSION = $session;
+        $request = $this->makeRequest($session, 'GET', '/catalog', [
+            'name' => 'zzz',
+            'sort' => 'invalid_sort',
+        ]);
+        $response = new Response();
+        $service = $this->createProductServiceMock();
+        $service->expects($this->once())
+            ->method('countAll')
+            ->willReturn(2);
+        $service->expects($this->once())
+            ->method('findAll')
+            ->with(1, 2, 'name', 'asc')
+            ->willReturn([
+                $this->productRecord(),
+                $this->productRecord([
+                    'id' => 2,
+                    'name' => 'Water',
+                ]),
+            ]);
+
+        $controller = new ProductsController($service);
+
+        $output = '';
+        ob_start();
+        try {
+            $controller->catalog($request, $response);
+        } finally {
+            $output = (string) ob_get_clean();
+        }
+
+        $this->assertSame('products/catalog', $response->viewName());
+        $this->assertSame('name_asc', $response->viewData()['sort']);
+        $this->assertSame([], $response->viewData()['products']);
+        $this->assertStringContainsString('No products matched the current name filter.', $output);
     }
 
     public function testShowReturnsNotFoundWhenProductDoesNotExist(): void
@@ -196,7 +383,7 @@ final class ProductsControllerTest extends TestCase
 
         $this->assertSame('products/show', $response->viewName());
         $this->assertStringContainsString('Out of stock', $output);
-        $this->assertStringNotContainsString('/products/1/purchase', $output);
+        $this->assertStringNotContainsString('/products/1-coke/purchase', $output);
     }
 
     public function testCreateRendersCreateView(): void
@@ -393,7 +580,7 @@ final class ProductsControllerTest extends TestCase
     public function testPurchaseFormRendersWhenProductExists(): void
     {
         $session = [];
-        $request = $this->makeRequest($session, 'GET', '/products/1/purchase', [], [], ['id' => '1']);
+        $request = $this->makeRequest($session, 'GET', '/products/1-coke/purchase', [], [], ['id' => '1', 'slug' => 'coke']);
         $response = new Response();
         $service = $this->createProductServiceMock();
         $service->method('findById')->with(1)->willReturn($this->productRecord());
@@ -415,7 +602,7 @@ final class ProductsControllerTest extends TestCase
     public function testPurchaseFormShowsOutOfStockStateWhenInventoryIsZero(): void
     {
         $session = [];
-        $request = $this->makeRequest($session, 'GET', '/products/1/purchase', [], [], ['id' => '1']);
+        $request = $this->makeRequest($session, 'GET', '/products/1-coke/purchase', [], [], ['id' => '1', 'slug' => 'coke']);
         $response = new Response();
         $service = $this->createProductServiceMock();
         $service->method('findById')->with(1)->willReturn($this->productRecord(['quantity_available' => 0]));
@@ -439,9 +626,9 @@ final class ProductsControllerTest extends TestCase
     public function testPurchaseRedirectsUnauthenticatedUsersToLogin(): void
     {
         $session = [];
-        $request = $this->makeRequest($session, 'POST', '/products/1/purchase', [], [
+        $request = $this->makeRequest($session, 'POST', '/products/1-coke/purchase', [], [
             'quantity' => '1',
-        ], ['id' => '1']);
+        ], ['id' => '1', 'slug' => 'coke']);
         $response = new Response();
         $service = $this->createProductServiceMock();
         $purchaseService = $this->createPurchaseServiceMock();
@@ -458,9 +645,9 @@ final class ProductsControllerTest extends TestCase
     public function testPurchaseRedirectsBackWithValidationErrors(): void
     {
         $session = ['authenticated' => true, 'user_id' => 7];
-        $request = $this->makeRequest($session, 'POST', '/products/1/purchase', [], [
+        $request = $this->makeRequest($session, 'POST', '/products/1-coke/purchase', [], [
             'quantity' => '0',
-        ], ['id' => '1']);
+        ], ['id' => '1', 'slug' => 'coke']);
         $response = new Response();
         $service = $this->createProductServiceMock();
         $service->method('findById')->with(1)->willReturn($this->productRecord());
@@ -470,16 +657,16 @@ final class ProductsControllerTest extends TestCase
 
         $controller->purchase($request, $response);
 
-        $this->assertSame('/products/1/purchase', $response->redirectLocation());
+        $this->assertSame('/products/1-coke/purchase', $response->redirectLocation());
         $this->assertSame('Quantity must be an integer greater than or equal to 1.', $session['errors']['quantity']);
     }
 
     public function testPurchaseRedirectsBackWhenPurchaseServiceRejectsRequest(): void
     {
         $session = ['authenticated' => true, 'user_id' => 7];
-        $request = $this->makeRequest($session, 'POST', '/products/1/purchase', [], [
+        $request = $this->makeRequest($session, 'POST', '/products/1-coke/purchase', [], [
             'quantity' => '4',
-        ], ['id' => '1']);
+        ], ['id' => '1', 'slug' => 'coke']);
         $response = new Response();
         $service = $this->createProductServiceMock();
         $service->method('findById')->with(1)->willReturn($this->productRecord());
@@ -490,16 +677,16 @@ final class ProductsControllerTest extends TestCase
 
         $controller->purchase($request, $response);
 
-        $this->assertSame('/products/1/purchase', $response->redirectLocation());
+        $this->assertSame('/products/1-coke/purchase', $response->redirectLocation());
         $this->assertSame('Product stock could not be updated.', $session['errors']['quantity']);
     }
 
     public function testPurchaseCompletesSuccessfully(): void
     {
         $session = ['authenticated' => true, 'user_id' => 7];
-        $request = $this->makeRequest($session, 'POST', '/products/1/purchase', [], [
+        $request = $this->makeRequest($session, 'POST', '/products/1-coke/purchase', [], [
             'quantity' => '2',
-        ], ['id' => '1']);
+        ], ['id' => '1', 'slug' => 'coke']);
         $response = new Response();
         $service = $this->createProductServiceMock();
         $service->method('findById')->with(1)->willReturn($this->productRecord());
@@ -520,7 +707,7 @@ final class ProductsControllerTest extends TestCase
 
         $controller->purchase($request, $response);
 
-        $this->assertSame('/products/1/purchase', $response->redirectLocation());
+        $this->assertSame('/products/1-coke/purchase', $response->redirectLocation());
         $this->assertSame('Purchase completed successfully. Quantity: 2. Total: 7.980 USD. Available quantity is now 8.', $session['flash']);
     }
 

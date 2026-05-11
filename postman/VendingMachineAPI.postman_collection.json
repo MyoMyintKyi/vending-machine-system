@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "73f2a488-8fb9-4f1d-9e5f-e4c4e4dcf001",
     "name": "Vending Machine API",
-    "description": "Postman collection for the routes defined in routes/api.php.",
+    "description": "Postman collection for the API routes plus web-reference requests for the user catalog and the SEO-friendly purchase URL. API product browsing and management remain admin-JWT protected, while API purchase uses a standard user JWT and the web catalog and web purchase flow use session authentication.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -16,6 +16,18 @@
     },
     {
       "key": "admin_jwt_token",
+      "value": ""
+    },
+    {
+      "key": "product_id",
+      "value": "1"
+    },
+    {
+      "key": "product_slug",
+      "value": "coke"
+    },
+    {
+      "key": "web_session_cookie",
       "value": ""
     }
   ],
@@ -73,6 +85,112 @@
               ]
             },
             "description": "Returns the authenticated user's dashboard summary fields: username, email, and role."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Web Reference",
+      "item": [
+        {
+          "name": "User Catalog",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{web_session_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/catalog?name=&sort=name_asc&page=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalog"
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": ""
+                },
+                {
+                  "key": "sort",
+                  "value": "name_asc"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Session-authenticated User-only catalog page. Supports filtering by product name, sorting by name or price, and pagination. Set web_session_cookie before using this request."
+          },
+          "response": []
+        },
+        {
+          "name": "SEO Purchase Form",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{web_session_cookie}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/products/{{product_id}}-{{product_slug}}/purchase",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "products",
+                "{{product_id}}-{{product_slug}}",
+                "purchase"
+              ]
+            },
+            "description": "Session-authenticated User-only purchase form using the SEO-friendly web URL pattern /products/{id}-{slug}/purchase."
+          },
+          "response": []
+        },
+        {
+          "name": "SEO Purchase Submit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{web_session_cookie}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "quantity",
+                  "value": "1",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/products/{{product_id}}-{{product_slug}}/purchase",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "products",
+                "{{product_id}}-{{product_slug}}",
+                "purchase"
+              ]
+            },
+            "description": "Session-authenticated User-only purchase submission for the SEO-friendly web purchase URL."
           },
           "response": []
         }
@@ -321,7 +439,8 @@
                   "value": "asc"
                 }
               ]
-            }
+            },
+            "description": "Lists products through the admin-only API. This route is separate from the session-authenticated web catalog at /catalog."
           },
           "response": []
         },
@@ -350,7 +469,8 @@
                 "products",
                 "1"
               ]
-            }
+            },
+            "description": "Shows a single product through the admin-only API."
           },
           "response": []
         },
@@ -387,7 +507,8 @@
                 "api",
                 "products"
               ]
-            }
+            },
+            "description": "Creates a product through the admin-only API."
           },
           "response": []
         },
@@ -425,7 +546,8 @@
                 "products",
                 "1"
               ]
-            }
+            },
+            "description": "Updates a product through the admin-only API."
           },
           "response": []
         },
@@ -454,7 +576,8 @@
                 "products",
                 "1"
               ]
-            }
+            },
+            "description": "Deletes a product through the admin-only API."
           },
           "response": []
         },
@@ -466,7 +589,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{admin_jwt_token}}",
+                  "value": "{{jwt_token}}",
                   "type": "string"
                 }
               ]
@@ -493,7 +616,8 @@
                 "1",
                 "purchase"
               ]
-            }
+            },
+            "description": "Purchases a product through the user-accessible API endpoint /api/products/{id}/purchase. This API URL is unchanged; the SEO-friendly slugged purchase URL applies to the web flow only. Use jwt_token, not admin_jwt_token, for this request."
           },
           "response": []
         }

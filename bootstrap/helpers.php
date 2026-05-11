@@ -33,3 +33,21 @@ if (!function_exists('format_view_number')) {
         return \App\Support\ViewNumberFormatter::format($value);
     }
 }
+
+if (!function_exists('product_slug')) {
+    function product_slug(string $name): string
+    {
+        $slug = strtolower(trim($name));
+        $slug = preg_replace('/[^a-z0-9]+/', '-', $slug) ?? '';
+        $slug = trim($slug, '-');
+
+        return $slug !== '' ? $slug : 'product';
+    }
+}
+
+if (!function_exists('product_purchase_path')) {
+    function product_purchase_path(int $id, string $name): string
+    {
+        return '/products/' . $id . '-' . product_slug($name) . '/purchase';
+    }
+}

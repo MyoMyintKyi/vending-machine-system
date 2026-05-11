@@ -21,6 +21,9 @@
             <!-- <p class="section-heading">Workspace</p> -->
             <nav class="auth-nav">
                 <a href="/dashboard">Dashboard</a>
+                <?php if (($_SESSION['role'] ?? '') === 'User'): ?>
+                    <a href="/catalog">Catalog</a>
+                <?php endif; ?>
                 <?php if (($_SESSION['role'] ?? '') === 'Admin'): ?>
                     <a href="/users">Users</a>
                     <a href="/transactions">Transactions</a>
