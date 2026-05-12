@@ -21,9 +21,20 @@ if (!function_exists('config_path')) {
 if (!function_exists('env')) {
     function env(string $key, ?string $default = null): ?string
     {
-        $value = $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key);
+        // getenv() is generally more reliable in containerized environments like Render
+        $value = getenv($key);
 
-        return $value === false || $value === null ? $default : (string) $value;
+        if ($value === false) {
+            // Only check superglobals if getenv fails
+            $value = $_ENV[$key] ?? $_SERVER[$key] ?? $default;
+        }
+
+        // Handle 'null' or 'false' strings if they come from a .env file parser
+        if ($value === 'null' || $value === '(null)') return null;
+        if ($value === 'false' || $value === '(false)') return '0';
+        if ($value === 'true' || $value === '(true)') return '1';
+
+        return (string) $value;
     }
 }
 
