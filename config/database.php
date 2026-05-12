@@ -10,4 +10,5 @@ return [
     'username' => env('DB_USER', 'root'),
     'password' => env('DB_PASSWORD', ''),
     'charset' => env('DB_CHARSET', 'utf8mb4'),
+    'ssl_ca' => env('SSL_CA_PATH', null),
 ];

@@ -31,15 +31,24 @@ final class Database
             $this->config['charset'] ?? 'utf8mb4'
         );
 
+        $pdoOptions = [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+        ];
+
+        // 2. Only add SSL if the CA path is provided
+        $caPath = $this->config['ssl_ca'] ?? null;
+        if ($caPath) {
+            $pdoOptions[PDO::MYSQL_ATTR_SSL_CA] = $caPath;
+            $pdoOptions[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
+        }
+
         $this->connection = new PDO(
             $dsn,
             $this->config['username'] ?? '',
             $this->config['password'] ?? '',
-            [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_EMULATE_PREPARES => false,
-            ]
+            $pdoOptions
         );
 
         return $this->connection;
